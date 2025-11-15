@@ -22,13 +22,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Product Image -->
+    <!-- Product Image with Transition Name -->
     <ImageView
         android:id="@+id/product_detail_image"
         android:layout_width="300dp"
         android:layout_height="300dp"
         android:layout_marginTop="32dp"
         android:scaleType="centerCrop"
+        android:transitionName="product_image_transition"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/headerText"

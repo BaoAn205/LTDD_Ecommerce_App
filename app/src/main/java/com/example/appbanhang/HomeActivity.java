@@ -2,11 +2,14 @@ package com.example.appbanhang;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
+
 import com.google.android.material.appbar.MaterialToolbar;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,19 +66,23 @@ public class HomeActivity extends AppCompatActivity {
         GridAdapter adapter = new GridAdapter(this, productList);
         gridView.setAdapter(adapter);
 
-        // --- Bắt đầu phần xử lý sự kiện click cho GridView ---
+        // --- Bắt đầu phần xử lý sự kiện click cho GridView với hiệu ứng ---
         gridView.setOnItemClickListener((parent, view, position, id) -> {
-            // 1. Lấy sản phẩm được click
             Product selectedProduct = productList.get(position);
-
-            // 2. Tạo Intent để mở ProductDetailActivity
             Intent intent = new Intent(HomeActivity.this, ProductDetailActivity.class);
-
-            // 3. Đính kèm đối tượng sản phẩm vào Intent
             intent.putExtra("PRODUCT_DETAIL", selectedProduct);
 
-            // 4. Khởi chạy Activity mới
-            startActivity(intent);
+            // Tìm ImageView bên trong item được click
+            ImageView productImageView = view.findViewById(R.id.gridImage);
+
+            // Tạo hiệu ứng chuyển cảnh
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                    HomeActivity.this,
+                    productImageView,
+                    "product_image_transition");
+
+            // Khởi chạy Activity với hiệu ứng
+            startActivity(intent, options.toBundle());
         });
         // --- Kết thúc phần xử lý sự kiện click cho GridView ---
     }
