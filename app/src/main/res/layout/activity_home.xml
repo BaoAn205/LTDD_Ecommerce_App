@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Header -->
+    <!-- Header: Uses the primary color from the theme -->
     <TextView
         android:id="@+id/headerText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#de7403"
+        android:background="?attr/colorPrimary"
         android:text="Home"
-        android:textColor="#ffffff"
+        android:textColor="?attr/colorOnPrimary"
         android:textSize="40sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -21,7 +21,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Hình trung tâm -->
+    <!-- Center Image -->
     <ImageView
         android:id="@+id/centerImage"
         android:layout_width="420dp"
@@ -33,12 +33,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp" />
 
-    <!-- 🔽 Thanh menu ngay bên dưới hình -->
+    <!-- Menu Bar: Uses the secondary color from the theme -->
     <LinearLayout
         android:id="@+id/topMenuBar"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:background="#FF9800"
+        android:background="?attr/colorSecondary"
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="4dp"
@@ -88,24 +88,23 @@
     </LinearLayout>
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="10dp"
         android:id="@+id/Danhsach"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
         android:text="Danh sách sản phẩm: "
-        android:textSize="20dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/topMenuBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
-    
     <GridView
         android:id="@+id/gridView"
-        android:layout_width="366dp"
-        android:layout_height="354dp"
-        android:layout_marginTop="0dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
         android:gravity="center"
         android:horizontalSpacing="10dp"
         android:numColumns="3"
@@ -113,11 +112,9 @@
         android:stretchMode="columnWidth"
         android:verticalSpacing="10dp"
         android:background="@drawable/grid_border"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintTop_toBottomOf="@id/Danhsach"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/Danhsach" />
-    <!-- Test branch 1 -->
-
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

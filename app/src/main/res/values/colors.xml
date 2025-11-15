@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand Colors -->
+    <color name="brand_primary">#de7403</color>
+    <color name="brand_secondary">#FF9800</color>
+
+    <!-- Standard Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

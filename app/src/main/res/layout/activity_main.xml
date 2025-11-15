@@ -7,14 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- Header -->
+    <!-- Header: Uses theme attributes -->
     <TextView
         android:id="@+id/headerText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#de7403"
+        android:background="?attr/colorPrimary"
         android:text="Shopee"
-        android:textColor="#ffffff"
+        android:textColor="?attr/colorOnPrimary"
         android:textSize="40sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -102,7 +102,7 @@
             android:inputType="textPassword" />
     </LinearLayout>
 
-    <!-- Buttons Layout -->
+    <!-- Buttons Layout: Uses theme attributes -->
     <LinearLayout
         android:id="@+id/layoutButtons"
         android:layout_width="0dp"
@@ -123,8 +123,8 @@
             android:layout_weight="1"
             android:text="Login"
             android:textSize="20sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#de7403" />
+            android:textColor="?attr/colorOnPrimary"
+            android:backgroundTint="?attr/colorPrimary" />
 
         <Space
             android:layout_width="12dp"
@@ -136,9 +136,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Register"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="20sp"
-            android:backgroundTint="#de7403" />
+            android:backgroundTint="?attr/colorPrimary" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
