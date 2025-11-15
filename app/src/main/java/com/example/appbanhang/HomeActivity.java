@@ -18,16 +18,14 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // --- Bắt đầu phần mã cho Toolbar ---
+        // --- Toolbar --- 
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
-
-        // Xử lý sự kiện click cho icon categories tùy chỉnh
         ImageView categoriesIcon = findViewById(R.id.categories_icon);
+
         categoriesIcon.setOnClickListener(v -> {
             Toast.makeText(HomeActivity.this, "Categories icon clicked!", Toast.LENGTH_SHORT).show();
         });
 
-        // Xử lý sự kiện click cho các mục menu (bên phải)
         topAppBar.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_notifications) {
@@ -45,10 +43,8 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
-        // --- Kết thúc phần mã cho Toolbar ---
 
-        // --- Bắt đầu phần mã cho GridView (giữ nguyên) ---
-
+        // --- GridView --- 
         List<Product> productList = new ArrayList<>();
         productList.add(new Product(1, "Laptop Pro", 25000000, R.drawable.pic1));
         productList.add(new Product(2, "Iphone 15", 15000000, R.drawable.pic2));
@@ -67,6 +63,20 @@ public class HomeActivity extends AppCompatActivity {
         GridAdapter adapter = new GridAdapter(this, productList);
         gridView.setAdapter(adapter);
 
-        // --- Kết thúc phần mã cho GridView ---
+        // --- Bắt đầu phần xử lý sự kiện click cho GridView ---
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
+            // 1. Lấy sản phẩm được click
+            Product selectedProduct = productList.get(position);
+
+            // 2. Tạo Intent để mở ProductDetailActivity
+            Intent intent = new Intent(HomeActivity.this, ProductDetailActivity.class);
+
+            // 3. Đính kèm đối tượng sản phẩm vào Intent
+            intent.putExtra("PRODUCT_DETAIL", selectedProduct);
+
+            // 4. Khởi chạy Activity mới
+            startActivity(intent);
+        });
+        // --- Kết thúc phần xử lý sự kiện click cho GridView ---
     }
 }

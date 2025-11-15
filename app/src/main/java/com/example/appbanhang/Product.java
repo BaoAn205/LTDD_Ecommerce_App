@@ -1,6 +1,9 @@
 package com.example.appbanhang;
 
-public class Product {
+import java.io.Serializable;
+
+// Thêm "implements Serializable" để có thể gửi đối tượng Product giữa các Activity
+public class Product implements Serializable {
     private int id;
     private String name;
     private double price;
