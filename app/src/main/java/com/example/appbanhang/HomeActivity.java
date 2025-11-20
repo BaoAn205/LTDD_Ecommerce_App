@@ -2,17 +2,17 @@ package com.example.appbanhang;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.Button;
 import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityOptionsCompat;
 
-import com.google.android.material.appbar.MaterialToolbar;
 import java.util.ArrayList;
 import java.util.List;
+import androidx.recyclerview.widget.RecyclerView; // Thêm import này
+import androidx.recyclerview.widget.GridLayoutManager; // Thêm import này
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -21,33 +21,41 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // --- Toolbar --- 
-        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
-        ImageView categoriesIcon = findViewById(R.id.categories_icon);
+        // Ánh xạ các nút trên thanh top bar
+        Button Weights = findViewById(R.id.Weights);
+        Button Cardio = findViewById(R.id.Cardio);
+        Button Apparel = findViewById(R.id.Apparel);
+        Button Yoga = findViewById(R.id.Yoga);
 
-        categoriesIcon.setOnClickListener(v -> {
-            Toast.makeText(HomeActivity.this, "Categories icon clicked!", Toast.LENGTH_SHORT).show();
+        // Nút Home (vì đang ở trang Home, ta có thể reload hoặc làm gì khác)
+        Weights.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
+            startActivity(intent);
+            finish();
         });
 
-        topAppBar.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.action_notifications) {
-                startActivity(new Intent(HomeActivity.this, NotiActivity.class));
-                return true;
-            } else if (itemId == R.id.action_help) {
-                startActivity(new Intent(HomeActivity.this, HelpActivity.class));
-                return true;
-            } else if (itemId == R.id.action_logout) {
-                Intent intent = new Intent(HomeActivity.this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
-                return true;
-            }
-            return false;
+        // Nút Thông báo → chuyển sang NotiActivity
+        Cardio.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, NotiActivity.class);
+            startActivity(intent);
         });
 
-        // --- GridView --- 
+        // Nút Hỗ trợ → chuyển sang HelpActivity
+        Apparel.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, HelpActivity.class);
+            startActivity(intent);
+        });
+
+        // Nút Đăng xuất → quay lại trang Login
+        Yoga.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish(); // đóng HomeActivity để không quay lại được bằng nút Back
+        });
+
+        // --- Bắt đầu phần mã cho GridView (đã được refactor) ---
+
+        // 1. Tạo danh sách sản phẩm
         List<Product> productList = new ArrayList<>();
         productList.add(new Product(1, "Laptop Pro", 25000000, R.drawable.pic1));
         productList.add(new Product(2, "Iphone 15", 15000000, R.drawable.pic2));
@@ -62,28 +70,16 @@ public class HomeActivity extends AppCompatActivity {
         productList.add(new Product(11, "Logitech G502 Wireless Mouse", 800000, R.drawable.pic5));
         productList.add(new Product(12, "Mechanical Keyboard", 2500000, R.drawable.pic6));
 
+
+        // 2. Liên kết GridView trong XML
         GridView gridView = findViewById(R.id.gridView);
+
+        // 3. Tạo adapter với danh sách sản phẩm
         GridAdapter adapter = new GridAdapter(this, productList);
+
+        // 4. Gán adapter cho GridView
         gridView.setAdapter(adapter);
 
-        // --- Bắt đầu phần xử lý sự kiện click cho GridView với hiệu ứng ---
-        gridView.setOnItemClickListener((parent, view, position, id) -> {
-            Product selectedProduct = productList.get(position);
-            Intent intent = new Intent(HomeActivity.this, ProductDetailActivity.class);
-            intent.putExtra("PRODUCT_DETAIL", selectedProduct);
-
-            // Tìm ImageView bên trong item được click
-            ImageView productImageView = view.findViewById(R.id.gridImage);
-
-            // Tạo hiệu ứng chuyển cảnh
-            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    HomeActivity.this,
-                    productImageView,
-                    "product_image_transition");
-
-            // Khởi chạy Activity với hiệu ứng
-            startActivity(intent, options.toBundle());
-        });
-        // --- Kết thúc phần xử lý sự kiện click cho GridView ---
+        // --- Kết thúc phần mã cho GridView ---
     }
 }
