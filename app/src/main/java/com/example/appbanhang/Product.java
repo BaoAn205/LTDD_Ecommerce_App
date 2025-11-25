@@ -1,15 +1,20 @@
 package com.example.appbanhang;
 
+import com.google.firebase.firestore.Exclude;
 import java.io.Serializable;
 
 public class Product implements Serializable {
-    // Note: No 'id' field from Firestore, as the document ID serves as the unique identifier.
+
+    // The document ID from Firestore. We use @Exclude so Firestore doesn't try to save it as a field.
+    @Exclude
+    private String id;
+
     private String name;
     private double price;
-    private String image; // Changed from int to String
-    private String description; // Added new field
+    private String image;
+    private String description;
 
-    // Empty constructor required for Firestore to automatically map data
+    // Empty constructor required for Firestore
     public Product() {}
 
     public Product(String name, double price, String image, String description) {
@@ -19,7 +24,11 @@ public class Product implements Serializable {
         this.description = description;
     }
 
-    // Getters
+    // --- Getters ---
+    public String getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -36,7 +45,11 @@ public class Product implements Serializable {
         return description;
     }
 
-    // Setters (also useful for Firestore)
+    // --- Setters ---
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

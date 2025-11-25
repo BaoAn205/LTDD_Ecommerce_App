@@ -20,24 +20,24 @@ public class MainActivity extends AppCompatActivity {
     private TextView registerButton;
     private FirebaseAuth mAuth;
 
+    // --- ADMIN CREDENTIALS ---
+    private static final String ADMIN_EMAIL = "admin";
+    private static final String ADMIN_PASSWORD = "admin";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 1. Khởi tạo Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // 2. Ánh xạ các view từ layout MỚI của bạn
         inputEmail = findViewById(R.id.inputEmail);
         inputPassword = findViewById(R.id.inputPassword);
         loginButton = findViewById(R.id.loginButton);
         registerButton = findViewById(R.id.registerButton);
 
-        // 3. Gán sự kiện click cho nút Đăng nhập
-        loginButton.setOnClickListener(v -> loginUserWithFirebase());
+        loginButton.setOnClickListener(v -> loginUser());
 
-        // 4. Gán sự kiện click cho nút Đăng ký
         registerButton.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, RegisterActivity.class));
         });
@@ -46,18 +46,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // 5. Kiểm tra nếu người dùng đã đăng nhập từ trước, vào thẳng trang Home
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             goToHomeActivity();
         }
     }
 
-    private void loginUserWithFirebase() {
+    private void loginUser() {
         String email = inputEmail.getText().toString().trim();
         String password = inputPassword.getText().toString().trim();
 
-        // Kiểm tra đầu vào
         if (TextUtils.isEmpty(email)) {
             inputEmail.setError("Email không được để trống.");
             return;
@@ -67,15 +65,22 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // 6. Gọi đến Firebase để xác thực
+        // --- ADMIN LOGIN CHECK ---
+        if (email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASSWORD)) {
+            Toast.makeText(MainActivity.this, "Đăng nhập với tư cách Admin thành công.", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this, AdminHomeActivity.class);
+            startActivity(intent);
+            finish();
+            return; // Dừng thực thi để không chạy code đăng nhập của người dùng thường
+        }
+
+        // --- REGULAR USER LOGIN ---
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Đăng nhập thành công
                         Toast.makeText(MainActivity.this, "Đăng nhập thành công.", Toast.LENGTH_SHORT).show();
                         goToHomeActivity();
                     } else {
-                        // Đăng nhập thất bại, hiển thị lỗi chi tiết
                         Toast.makeText(MainActivity.this, "Đăng nhập thất bại: " + task.getException().getMessage(),
                                 Toast.LENGTH_LONG).show();
                     }

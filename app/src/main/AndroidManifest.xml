@@ -11,8 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppBanHang">
-        
-        <!-- Activity khởi chạy -->
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -22,14 +21,17 @@
             </intent-filter>
         </activity>
 
-        <!-- Các Activity khác trong ứng dụng -->
+        <!-- User-facing Activities -->
         <activity android:name=".HomeActivity" />
+        <activity android:name=".RegisterActivity" />
+        <activity android:name=".ProductDetailActivity" />
         <activity android:name=".NotiActivity" />
         <activity android:name=".HelpActivity" />
-        <activity android:name=".RegisterActivity" />
-        
-        <!-- Activity chi tiết sản phẩm mới được thêm vào -->
-        <activity android:name=".ProductDetailActivity" />
+
+        <!-- Admin-facing Activities -->
+        <activity android:name=".AdminHomeActivity" />
+        <activity android:name=".ManageProductsActivity" />
+        <activity android:name=".AddEditProductActivity" />
 
     </application>
 
