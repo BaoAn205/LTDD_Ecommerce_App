@@ -2,24 +2,24 @@ package com.example.appbanhang;
 
 import java.io.Serializable;
 
-// Thêm "implements Serializable" để có thể gửi đối tượng Product giữa các Activity
 public class Product implements Serializable {
-    private int id;
+    // Note: No 'id' field from Firestore, as the document ID serves as the unique identifier.
     private String name;
     private double price;
-    private int image;
+    private String image; // Changed from int to String
+    private String description; // Added new field
 
-    public Product(int id, String name, double price, int image) {
-        this.id = id;
+    // Empty constructor required for Firestore to automatically map data
+    public Product() {}
+
+    public Product(String name, double price, String image, String description) {
         this.name = name;
         this.price = price;
         this.image = image;
+        this.description = description;
     }
 
-    public int getId() {
-        return id;
-    }
-
+    // Getters
     public String getName() {
         return name;
     }
@@ -28,14 +28,15 @@ public class Product implements Serializable {
         return price;
     }
 
-    public int getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public String getDescription() {
+        return description;
     }
 
+    // Setters (also useful for Firestore)
     public void setName(String name) {
         this.name = name;
     }
@@ -44,7 +45,11 @@ public class Product implements Serializable {
         this.price = price;
     }
 
-    public void setImage(int image) {
+    public void setImage(String image) {
         this.image = image;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

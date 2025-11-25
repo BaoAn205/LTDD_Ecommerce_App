@@ -22,6 +22,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         ImageView productImageView = findViewById(R.id.product_detail_image);
         TextView productNameView = findViewById(R.id.product_detail_name);
         TextView productPriceView = findViewById(R.id.product_detail_price);
+        TextView productDescriptionView = findViewById(R.id.product_detail_description);
         Button backButton = findViewById(R.id.back_button);
 
         // Lấy dữ liệu Product được gửi qua Intent
@@ -29,23 +30,30 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         // Kiểm tra xem product có null không và hiển thị dữ liệu
         if (product != null) {
-            productImageView.setImageResource(product.getImage());
+            int imageId = getResources().getIdentifier(product.getImage(), "drawable", getPackageName());
+            productImageView.setImageResource(imageId);
+            
             productNameView.setText(product.getName());
+            productDescriptionView.setText(product.getDescription());
 
-            // Định dạng giá tiền cho đẹp
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             productPriceView.setText(formatter.format(product.getPrice()));
 
         } else {
-            // Xử lý trường hợp không nhận được dữ liệu
             Toast.makeText(this, "Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show();
-            finish(); // Đóng activity nếu không có dữ liệu
+            finish();
         }
 
-        // Xử lý sự kiện cho nút quay lại
+        // Xử lý sự kiện cho nút quay lại với hiệu ứng
         backButton.setOnClickListener(v -> {
-            // Chỉ cần đóng activity hiện tại để quay lại màn hình trước đó (HomeActivity)
-            finish();
+            supportFinishAfterTransition();
         });
+    }
+
+    // Ghi đè nút back vật lý để cũng có hiệu ứng
+    @Override
+    public void onBackPressed() {
+        supportFinishAfterTransition();
+        super.onBackPressed();
     }
 }

@@ -1,20 +1,26 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.AppBanHang" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+    <style name="Base.Theme.AppBanHang" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Customize your light theme here to match the dark theme for consistency -->
 
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/brand_primary</item>
-        <item name="colorPrimaryVariant">@color/brand_primary</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <!-- Primary brand color (the main background) -->
+        <item name="colorPrimary">@color/dark_background</item>
+        <item name="colorPrimaryVariant">@color/dark_background</item>
+        <item name="colorOnPrimary">@color/dark_text_primary</item> <!-- Text on primary background -->
 
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/brand_secondary</item>
-        <item name="colorSecondaryVariant">@color/brand_secondary</item>
-        <item name="colorOnSecondary">@color/white</item>
+        <!-- Secondary brand color (the accent color for buttons, links) -->
+        <item name="colorSecondary">@color/dark_primary_accent</item>
+        <item name="colorSecondaryVariant">@color/dark_primary_accent</item>
+        <item name="colorOnSecondary">@color/dark_text_primary</item> <!-- Text on accent background -->
 
-        <!-- Status bar color. -->
+        <!-- General background color -->
+        <item name="android:windowBackground">@color/dark_background</item>
+
+        <!-- Status bar color -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+
+        <!-- Default text color -->
+        <item name="android:textColor">@color/dark_text_primary</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowActivityTransitions">true</item>

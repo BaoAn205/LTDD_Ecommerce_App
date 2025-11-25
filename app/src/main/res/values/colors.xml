@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand Colors -->
-    <color name="brand_primary">#de7403</color>
-    <color name="brand_secondary">#FF9800</color>
+    <!-- New Dark Theme Palette -->
+    <color name="dark_background">#2E2A27</color>
+    <color name="dark_primary_accent">#DE7403</color>
+    <color name="dark_text_primary">#FFFFFF</color>
+    <color name="dark_text_secondary">#A9A9A9</color>
+    <color name="dark_icon_tint">#8B8B8B</color>
 
-    <!-- Standard Colors -->
+    <!-- Standard Colors (can be kept for reference) -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

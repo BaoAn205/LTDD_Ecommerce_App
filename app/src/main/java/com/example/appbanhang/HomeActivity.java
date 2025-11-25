@@ -2,84 +2,101 @@ package com.example.appbanhang;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import androidx.recyclerview.widget.RecyclerView; // Thêm import này
-import androidx.recyclerview.widget.GridLayoutManager; // Thêm import này
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeActivity extends AppCompatActivity {
+
+    private GridView gridView;
+    private GridAdapter adapter;
+    private List<Product> productList;
+    private FirebaseFirestore db;
+    private static final String TAG = "HomeActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Ánh xạ các nút trên thanh top bar
-        Button Weights = findViewById(R.id.Weights);
-        Button Cardio = findViewById(R.id.Cardio);
-        Button Apparel = findViewById(R.id.Apparel);
-        Button Yoga = findViewById(R.id.Yoga);
+        // --- Toolbar & Navigation Buttons (Logic kept as is) ---
+        Button weightsButton = findViewById(R.id.Weights);
+        Button cardioButton = findViewById(R.id.Cardio);
+        Button apparelButton = findViewById(R.id.Apparel);
+        Button yogaButton = findViewById(R.id.Yoga); // Logout button
+        ImageButton notificationButton = findViewById(R.id.notificationButton);
 
-        // Nút Home (vì đang ở trang Home, ta có thể reload hoặc làm gì khác)
-        Weights.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
+        weightsButton.setOnClickListener(v -> {
+            // Logic for Weights button
+        });
+        notificationButton.setOnClickListener(v -> {
+            startActivity(new Intent(HomeActivity.this, NotiActivity.class));
+        });
+        apparelButton.setOnClickListener(v -> {
+            startActivity(new Intent(HomeActivity.this, HelpActivity.class));
+        });
+
+        // Logout Logic
+        yogaButton.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            Toast.makeText(HomeActivity.this, "Đã đăng xuất", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
 
-        // Nút Thông báo → chuyển sang NotiActivity
-        Cardio.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, NotiActivity.class);
-            startActivity(intent);
-        });
-
-        // Nút Hỗ trợ → chuyển sang HelpActivity
-        Apparel.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, HelpActivity.class);
-            startActivity(intent);
-        });
-
-        // Nút Đăng xuất → quay lại trang Login
-        Yoga.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish(); // đóng HomeActivity để không quay lại được bằng nút Back
-        });
-
-        // --- Bắt đầu phần mã cho GridView (đã được refactor) ---
-
-        // 1. Tạo danh sách sản phẩm
-        List<Product> productList = new ArrayList<>();
-        productList.add(new Product(1, "Laptop Pro", 25000000, R.drawable.pic1));
-        productList.add(new Product(2, "Iphone 15", 15000000, R.drawable.pic2));
-        productList.add(new Product(3, "Tablet S", 10000000, R.drawable.pic3));
-        productList.add(new Product(4, "K10 RGB Gaming Headset", 5000000, R.drawable.pic4));
-        productList.add(new Product(5, "Logitech G502 Wireless Mouse", 800000, R.drawable.pic5));
-        productList.add(new Product(6, "Mechanical Keyboard", 2500000, R.drawable.pic6));
-        productList.add(new Product(7, "Laptop Pro", 25000000, R.drawable.pic1));
-        productList.add(new Product(8, "Iphone 15", 15000000, R.drawable.pic2));
-        productList.add(new Product(9, "Tablet S", 10000000, R.drawable.pic3));
-        productList.add(new Product(10, "K10 RGB Gaming Headset", 5000000, R.drawable.pic4));
-        productList.add(new Product(11, "Logitech G502 Wireless Mouse", 800000, R.drawable.pic5));
-        productList.add(new Product(12, "Mechanical Keyboard", 2500000, R.drawable.pic6));
-
-
-        // 2. Liên kết GridView trong XML
-        GridView gridView = findViewById(R.id.gridView);
-
-        // 3. Tạo adapter với danh sách sản phẩm
-        GridAdapter adapter = new GridAdapter(this, productList);
-
-        // 4. Gán adapter cho GridView
+        // --- GridView setup with Firestore Data ---
+        db = FirebaseFirestore.getInstance();
+        gridView = findViewById(R.id.gridView);
+        productList = new ArrayList<>();
+        adapter = new GridAdapter(this, productList);
         gridView.setAdapter(adapter);
 
-        // --- Kết thúc phần mã cho GridView ---
+        fetchProductsFromFirestore();
+
+        // --- GridView Item Click Listener for Product Detail ---
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
+            Product selectedProduct = productList.get(position);
+            Intent intent = new Intent(HomeActivity.this, ProductDetailActivity.class);
+            intent.putExtra("PRODUCT_DETAIL", selectedProduct);
+
+            ImageView productImageView = view.findViewById(R.id.gridImage);
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                    HomeActivity.this, productImageView, "product_image_transition");
+            startActivity(intent, options.toBundle());
+        });
+    }
+
+    private void fetchProductsFromFirestore() {
+        db.collection("products")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        productList.clear(); // Clear old data
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Product product = document.toObject(Product.class);
+                            productList.add(product);
+                            Log.d(TAG, document.getId() + " => " + document.getData());
+                        }
+                        adapter.notifyDataSetChanged(); // Refresh the GridView
+                    } else {
+                        Log.w(TAG, "Error getting documents.", task.getException());
+                        Toast.makeText(HomeActivity.this, "Lỗi khi tải dữ liệu sản phẩm.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
