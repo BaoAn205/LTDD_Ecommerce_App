@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "152360856344",
+    "firebase_url": "https://sportshop-fe471-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "sportshop-fe471",
+    "storage_bucket": "sportshop-fe471.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152360856344:android:d2be8decd8bec77f928c6d",
+        "android_client_info": {
+          "package_name": "com.example.appbanhang"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPgs-j2GFq7NjbRm7H_WGJPqEu1VL4Vxk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
