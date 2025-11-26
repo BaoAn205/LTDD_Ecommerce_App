@@ -38,6 +38,9 @@ public class HomeActivity extends AppCompatActivity {
         Button apparelButton = findViewById(R.id.Apparel);
         Button yogaButton = findViewById(R.id.Yoga); // Logout button
         ImageButton notificationButton = findViewById(R.id.notificationButton);
+        ImageButton profileButton = findViewById(R.id.profileButton);
+
+
 
         weightsButton.setOnClickListener(v -> {
             // Logic for Weights button
@@ -47,6 +50,10 @@ public class HomeActivity extends AppCompatActivity {
         });
         apparelButton.setOnClickListener(v -> {
             startActivity(new Intent(HomeActivity.this, HelpActivity.class));
+        });
+        profileButton.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+            startActivity(intent);
         });
 
         // Logout Logic
