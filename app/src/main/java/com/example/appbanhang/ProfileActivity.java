@@ -3,11 +3,13 @@ package com.example.appbanhang;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -21,6 +23,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private TextView userNameTextView, userEmailTextView, logoutButton;
     private ImageView backButton;
+    private ConstraintLayout addressSection;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -39,12 +42,18 @@ public class ProfileActivity extends AppCompatActivity {
         userEmailTextView = findViewById(R.id.userEmail);
         logoutButton = findViewById(R.id.logoutButton);
         backButton = findViewById(R.id.backButton);
+        addressSection = findViewById(R.id.addressSection);
 
         // Load user information
         loadUserProfile();
 
         // Set up click listeners
         backButton.setOnClickListener(v -> finish()); // Simply close the activity
+
+        addressSection.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, AddressListActivity.class);
+            startActivity(intent);
+        });
 
         logoutButton.setOnClickListener(v -> {
             mAuth.signOut();
