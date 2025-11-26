@@ -1,29 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="140dp"
-    android:orientation="vertical"
-    android:gravity="center_horizontal"
-    android:background="@drawable/item_border"
-    android:padding="8dp">
+    android:layout_height="220dp" 
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
 
-    <ImageView
-        android:id="@+id/gridImage"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:scaleType="centerCrop"
-        android:transitionName="product_image_transition" />
-
-    <TextView
-        android:id="@+id/gridText"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="4dp"
-        android:gravity="center_horizontal|top"
-        android:maxLines="2"
-        android:ellipsize="end"
-        android:textSize="14sp"
-        android:textColor="@android:color/black"/>
+        android:layout_height="match_parent">
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/gridImage"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:transitionName="product_image_transition"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:src="@drawable/ic_launcher_background" />
+
+        <TextView
+            android:id="@+id/gridTextName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            app:layout_constraintTop_toBottomOf="@id/gridImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Product Name Here This is a very long name" />
+
+        <TextView
+            android:id="@+id/gridTextPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/addToCartButton"
+            android:layout_marginBottom="8dp"
+            tools:text="1,200,000đ" />
+
+        <ImageButton
+            android:id="@+id/addToCartButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_margin="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_add"
+            app:tint="?attr/colorSecondary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

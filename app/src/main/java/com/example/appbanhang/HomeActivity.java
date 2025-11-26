@@ -4,14 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityOptionsCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -32,6 +28,11 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         // --- Toolbar & Top Buttons --- 
+        ImageButton cartButton = findViewById(R.id.cartButton);
+        cartButton.setOnClickListener(v -> {
+            startActivity(new Intent(HomeActivity.this, CartActivity.class));
+        });
+
         ImageButton notificationButton = findViewById(R.id.notificationButton);
         notificationButton.setOnClickListener(v -> {
             startActivity(new Intent(HomeActivity.this, NotiActivity.class));
@@ -64,17 +65,6 @@ public class HomeActivity extends AppCompatActivity {
 
         fetchProductsFromFirestore();
 
-        // --- GridView Item Click Listener for Product Detail ---
-        gridView.setOnItemClickListener((parent, view, position, id) -> {
-            Product selectedProduct = productList.get(position);
-            Intent intent = new Intent(HomeActivity.this, ProductDetailActivity.class);
-            intent.putExtra("PRODUCT_DETAIL", selectedProduct);
-
-            ImageView productImageView = view.findViewById(R.id.gridImage);
-            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                    HomeActivity.this, productImageView, "product_image_transition");
-            startActivity(intent, options.toBundle());
-        });
     }
 
     private void fetchProductsFromFirestore() {

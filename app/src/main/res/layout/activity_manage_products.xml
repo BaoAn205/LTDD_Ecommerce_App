@@ -44,7 +44,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:contentDescription="Thêm sản phẩm mới"
-        android:src="@android:drawable/ic_input_add" 
+        android:src="@android:drawable/ic_menu_add" 
         app:backgroundTint="?attr/colorSecondary"
         app:tint="?attr/colorOnSecondary"/>
 

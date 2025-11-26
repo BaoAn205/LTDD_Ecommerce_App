@@ -29,6 +29,7 @@
         <activity android:name=".HelpActivity" />
         <activity android:name=".WishlistActivity" />
         <activity android:name=".ProfileActivity" />
+        <activity android:name=".CartActivity" />
 
         <!-- Admin-facing Activities -->
         <activity android:name=".AdminHomeActivity" />

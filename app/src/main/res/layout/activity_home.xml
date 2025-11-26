@@ -48,10 +48,24 @@
                     android:background="@android:color/transparent"
                     android:contentDescription="Profile"
                     android:src="@drawable/ic_person"
-                    app:layout_constraintEnd_toStartOf="@id/notificationButton"
+                    app:layout_constraintEnd_toStartOf="@+id/cartButton"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:tint="#333333" />
+
+                <ImageButton
+                    android:id="@+id/cartButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Giỏ hàng"
+                    android:src="@drawable/ic_person" 
+                    app:layout_constraintEnd_toStartOf="@+id/notificationButton"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:tint="#333333" />
+
                 <ImageButton
                     android:id="@+id/notificationButton"
                     android:layout_width="48dp"
