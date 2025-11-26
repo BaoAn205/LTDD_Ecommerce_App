@@ -13,7 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class AddEditProductActivity extends AppCompatActivity {
 
-    private TextInputEditText editProductName, editProductPrice, editProductDescription, editProductImageName;
+    private TextInputEditText editProductName, editProductPrice, editProductDescription, editProductImageName, editProductCategory;
     private Button saveProductButton;
     private MaterialToolbar toolbar;
 
@@ -34,6 +34,7 @@ public class AddEditProductActivity extends AppCompatActivity {
         editProductPrice = findViewById(R.id.edit_product_price);
         editProductDescription = findViewById(R.id.edit_product_description);
         editProductImageName = findViewById(R.id.edit_product_image_name);
+        editProductCategory = findViewById(R.id.edit_product_category);
         saveProductButton = findViewById(R.id.save_product_button);
 
         // --- Check for Edit Mode ---
@@ -61,6 +62,7 @@ public class AddEditProductActivity extends AppCompatActivity {
             editProductPrice.setText(String.valueOf(currentProduct.getPrice()));
             editProductDescription.setText(currentProduct.getDescription());
             editProductImageName.setText(currentProduct.getImage());
+            editProductCategory.setText(currentProduct.getCategory());
         }
     }
 
@@ -70,10 +72,11 @@ public class AddEditProductActivity extends AppCompatActivity {
         String priceStr = editProductPrice.getText().toString().trim();
         String description = editProductDescription.getText().toString().trim();
         String imageName = editProductImageName.getText().toString().trim();
+        String category = editProductCategory.getText().toString().trim();
 
         // --- Validate input ---
-        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(priceStr) || TextUtils.isEmpty(imageName)) {
-            Toast.makeText(this, "Vui lòng điền tất cả các trường bắt buộc (Tên, Giá, Tên ảnh)", Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(priceStr) || TextUtils.isEmpty(imageName) || TextUtils.isEmpty(category)) {
+            Toast.makeText(this, "Vui lòng điền tất cả các trường", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -86,7 +89,7 @@ public class AddEditProductActivity extends AppCompatActivity {
         }
 
         // --- Create or Update Product Object ---
-        Product productToSave = new Product(name, price, imageName, description);
+        Product productToSave = new Product(name, price, imageName, description, category);
 
         if (isEditMode) {
             // --- UPDATE existing product ---

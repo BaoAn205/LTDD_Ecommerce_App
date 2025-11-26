@@ -4,22 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorPrimary"
     tools:context=".AddEditProductActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary">
+        android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="?attr/colorOnPrimary"
-            app:title="Thêm Sản phẩm Mới"
-            app:titleTextColor="?attr/colorOnPrimary" />
+            app:navigationIcon="@drawable/ic_arrow_back" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -32,91 +27,78 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="16dp">
 
-            <!-- Product Name -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Tên sản phẩm"
-                android:textColorHint="@color/dark_text_secondary"
-                app:boxStrokeColor="?attr/colorSecondary">
+                android:hint="Tên sản phẩm">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_product_name"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnPrimary" />
+                    android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Product Price -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="Giá (ví dụ: 25000000)"
-                android:textColorHint="@color/dark_text_secondary"
-                app:boxStrokeColor="?attr/colorSecondary">
+                android:layout_marginTop="8dp"
+                android:hint="Giá sản phẩm">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_product_price"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:textColor="?attr/colorOnPrimary" />
+                    android:inputType="numberDecimal" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Product Description -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="Mô tả sản phẩm"
-                android:textColorHint="@color/dark_text_secondary"
-                app:boxStrokeColor="?attr/colorSecondary">
+                android:layout_marginTop="8dp"
+                android:hint="Mô tả sản phẩm">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_product_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top"
-                    android:lines="4"
-                    android:textColor="?attr/colorOnPrimary" />
+                    android:minLines="3" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Product Image Name -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="Tên file ảnh (ví dụ: pic1)"
-                android:textColorHint="@color/dark_text_secondary"
-                app:boxStrokeColor="?attr/colorSecondary">
+                android:layout_marginTop="8dp"
+                android:hint="Danh mục (ví dụ: Weights, Cardio)">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_product_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Tên tệp ảnh (ví dụ: pic1)">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_product_image_name"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnPrimary" />
+                    android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
-
 
             <Button
                 android:id="@+id/save_product_button"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="32dp"
-                android:backgroundTint="?attr/colorSecondary"
-                android:text="Lưu Sản phẩm"
-                android:textColor="?attr/colorOnSecondary"
-                android:textSize="18sp" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Lưu Sản phẩm" />
 
         </LinearLayout>
-
     </ScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
