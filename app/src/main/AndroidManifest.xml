@@ -34,6 +34,7 @@
         <activity android:name=".AdminHomeActivity" />
         <activity android:name=".ManageProductsActivity" />
         <activity android:name=".AddEditProductActivity" />
+        <activity android:name=".AdminUserManagementActivity" />
 
     </application>
 

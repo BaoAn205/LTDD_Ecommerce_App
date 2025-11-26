@@ -21,7 +21,8 @@
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="?attr/colorOnPrimary"
             app:title="Quản lý Sản phẩm"
-            app:titleTextColor="?attr/colorOnPrimary" />
+            app:titleTextColor="?attr/colorOnPrimary"
+            app:menu="@menu/manage_products_menu"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

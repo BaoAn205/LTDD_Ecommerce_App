@@ -3,8 +3,6 @@ package com.example.appbanhang;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
@@ -33,8 +31,9 @@ public class AdminHomeActivity extends AppCompatActivity {
         });
 
         manageUsersCard.setOnClickListener(v -> {
-            // TODO: Chuyển sang màn hình Quản lý Người dùng
-            Toast.makeText(AdminHomeActivity.this, "Chức năng Quản lý Người dùng sắp ra mắt!", Toast.LENGTH_SHORT).show();
+            // Chuyển sang màn hình Quản lý Người dùng
+            Intent intent = new Intent(AdminHomeActivity.this, AdminUserManagementActivity.class);
+            startActivity(intent);
         });
 
         adminLogoutButton.setOnClickListener(v -> {

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,12 +13,14 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ProductAdminAdapter extends RecyclerView.Adapter<ProductAdminAdapter.ProductViewHolder> {
+public class ProductAdminAdapter extends RecyclerView.Adapter<ProductAdminAdapter.ProductViewHolder> implements Filterable {
 
-    private final List<Product> productList;
+    private List<Product> productList;
+    private List<Product> productListFull;
     private final Context context;
     private OnItemClickListener listener;
 
@@ -33,6 +37,13 @@ public class ProductAdminAdapter extends RecyclerView.Adapter<ProductAdminAdapte
     public ProductAdminAdapter(Context context, List<Product> productList) {
         this.context = context;
         this.productList = productList;
+        this.productListFull = new ArrayList<>(productList);
+    }
+
+    public void setProducts(List<Product> products) {
+        this.productList = products;
+        this.productListFull = new ArrayList<>(products);
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -52,6 +63,41 @@ public class ProductAdminAdapter extends RecyclerView.Adapter<ProductAdminAdapte
     public int getItemCount() {
         return productList.size();
     }
+
+    @Override
+    public Filter getFilter() {
+        return productFilter;
+    }
+
+    private final Filter productFilter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            List<Product> filteredList = new ArrayList<>();
+
+            if (constraint == null || constraint.length() == 0) {
+                filteredList.addAll(productListFull);
+            } else {
+                String filterPattern = constraint.toString().toLowerCase().trim();
+
+                for (Product item : productListFull) {
+                    if (item.getName().toLowerCase().contains(filterPattern)) {
+                        filteredList.add(item);
+                    }
+                }
+            }
+
+            FilterResults results = new FilterResults();
+            results.values = filteredList;
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            productList.clear();
+            productList.addAll((List) results.values);
+            notifyDataSetChanged();
+        }
+    };
 
     // ViewHolder class
     class ProductViewHolder extends RecyclerView.ViewHolder {
