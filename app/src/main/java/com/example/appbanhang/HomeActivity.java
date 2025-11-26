@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
@@ -24,13 +27,21 @@ public class HomeActivity extends AppCompatActivity {
 
     private ExpandableHeightGridView gridView;
     private GridAdapter adapter;
-    private List<Product> allProductList; // Master list of all products
-    private List<Product> displayedProductList; // List for display
+    private List<Product> allProductList;
+    private List<Product> displayedProductList;
     private FirebaseFirestore db;
     private SearchView searchView;
 
     private Button weightsButton, cardioButton, apparelButton, yogaButton;
-    private String selectedCategory = null; // To keep track of the selected category
+    private String selectedCategory = null;
+    private TextView seeAllButton;
+    private ImageButton notificationButton, cartButton;
+    private BottomNavigationView bottomNavigationView;
+
+    // Debouncing variables
+    private Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
+    private static final long DEBOUNCE_DELAY = 500; // 500ms delay
 
     private static final String TAG = "HomeActivity";
 
@@ -39,31 +50,60 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // --- Toolbar & Top Buttons ---
-        ImageButton notificationButton = findViewById(R.id.notificationButton);
-        notificationButton.setOnClickListener(v -> {
-            startActivity(new Intent(HomeActivity.this, NotiActivity.class));
-        });
+        // --- View Initialization ---
+        initializeViews();
 
-        ImageButton cartButton = findViewById(R.id.cartButton);
-        cartButton.setOnClickListener(v -> {
-            startActivity(new Intent(HomeActivity.this, CartActivity.class));
-        });
+        // --- Listeners Setup ---
+        setupClickListeners();
+        setupSearchView();
 
-        // --- Category Buttons ---
+        // --- GridView setup with Firestore Data ---
+        setupGridView();
+        fetchProductsFromFirestore();
+    }
+
+    private void initializeViews() {
+        // Toolbar & Top Buttons
+        notificationButton = findViewById(R.id.notificationButton);
+        cartButton = findViewById(R.id.cartButton);
+
+        // Category Buttons
         weightsButton = findViewById(R.id.Weights);
         cardioButton = findViewById(R.id.Cardio);
         apparelButton = findViewById(R.id.Apparel);
         yogaButton = findViewById(R.id.Yoga);
+        seeAllButton = findViewById(R.id.seeAllText);
 
-        setupCategoryButtons();
+        // SearchView
+        searchView = findViewById(R.id.searchView);
 
-        // --- Bottom Navigation ---
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation_view);
+        // Bottom Navigation
+        bottomNavigationView = findViewById(R.id.bottom_navigation_view);
+
+        // GridView
+        gridView = findViewById(R.id.gridView);
+    }
+
+    private void setupClickListeners() {
+        notificationButton.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, NotiActivity.class)));
+        cartButton.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, CartActivity.class)));
+
+        // Category Buttons
+        weightsButton.setOnClickListener(v -> onCategorySelected("Weights"));
+        cardioButton.setOnClickListener(v -> onCategorySelected("Cardio"));
+        apparelButton.setOnClickListener(v -> onCategorySelected("Apparel"));
+        yogaButton.setOnClickListener(v -> onCategorySelected("Yoga & Pilates"));
+        seeAllButton.setOnClickListener(v -> {
+            selectedCategory = null;
+            updateCategoryButtonsUI();
+            applyFilters();
+        });
+
+        // Bottom Navigation
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                return true; // Already on the home screen
+                return true; 
             } else if (itemId == R.id.nav_favorites) {
                 startActivity(new Intent(HomeActivity.this, WishlistActivity.class));
                 return true;
@@ -73,23 +113,9 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
-
-        // --- SearchView ---
-        searchView = findViewById(R.id.searchView);
-        setupSearchView();
-
-        // --- GridView setup with Firestore Data ---
-        db = FirebaseFirestore.getInstance();
-        gridView = findViewById(R.id.gridView);
-        allProductList = new ArrayList<>();
-        displayedProductList = new ArrayList<>();
-        adapter = new GridAdapter(this, displayedProductList);
-        gridView.setAdapter(adapter);
-
-        fetchProductsFromFirestore();
-
-        // --- GridView Item Click Listener for Product Detail ---
-        gridView.setOnItemClickListener((parent, view, position, id) -> {
+        
+        // GridView Item Click
+         gridView.setOnItemClickListener((parent, view, position, id) -> {
             Product selectedProduct = displayedProductList.get(position);
             Intent intent = new Intent(HomeActivity.this, ProductDetailActivity.class);
             intent.putExtra("PRODUCT_DETAIL", selectedProduct);
@@ -99,6 +125,14 @@ public class HomeActivity extends AppCompatActivity {
                     HomeActivity.this, productImageView, "product_image_transition");
             startActivity(intent, options.toBundle());
         });
+    }
+    
+    private void setupGridView(){
+         db = FirebaseFirestore.getInstance();
+        allProductList = new ArrayList<>();
+        displayedProductList = new ArrayList<>();
+        adapter = new GridAdapter(this, displayedProductList);
+        gridView.setAdapter(adapter);
     }
 
     private void fetchProductsFromFirestore() {
@@ -112,7 +146,7 @@ public class HomeActivity extends AppCompatActivity {
                             product.setId(document.getId());
                             allProductList.add(product);
                         }
-                        applyFilters(); // Apply current filters (search and category)
+                        applyFilters(); // Initial filter apply
                     } else {
                         Log.w(TAG, "Error getting documents.", task.getException());
                     }
@@ -120,30 +154,28 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void setupSearchView() {
+        searchRunnable = this::applyFilters;
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                // Perform search immediately
+                searchHandler.removeCallbacks(searchRunnable);
                 applyFilters();
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                applyFilters();
+                // Debounce the search query
+                searchHandler.removeCallbacks(searchRunnable);
+                searchHandler.postDelayed(searchRunnable, DEBOUNCE_DELAY);
                 return true;
             }
         });
     }
 
-    private void setupCategoryButtons() {
-        weightsButton.setOnClickListener(v -> onCategorySelected("Weights"));
-        cardioButton.setOnClickListener(v -> onCategorySelected("Cardio"));
-        apparelButton.setOnClickListener(v -> onCategorySelected("Apparel"));
-        yogaButton.setOnClickListener(v -> onCategorySelected("Yoga & Pilates"));
-    }
-
     private void onCategorySelected(String category) {
-        // If the same category is clicked again, deselect it.
         if (category.equals(selectedCategory)) {
             selectedCategory = null;
         } else {
@@ -177,15 +209,12 @@ public class HomeActivity extends AppCompatActivity {
         List<Product> filteredList = new ArrayList<>();
 
         for (Product product : allProductList) {
-            // A product is a category match if no category is selected, OR if the product's category is not null and matches.
             boolean categoryMatch = (selectedCategory == null) || 
                                     (product.getCategory() != null && selectedCategory.equalsIgnoreCase(product.getCategory()));
 
-            // A product is a search match if the query is empty, OR if the product's name is not null and contains the query.
             boolean searchMatch = query.isEmpty() || 
                                   (product.getName() != null && product.getName().toLowerCase().contains(query));
 
-            // Add to list if both filters pass
             if (categoryMatch && searchMatch) {
                 filteredList.add(product);
             }

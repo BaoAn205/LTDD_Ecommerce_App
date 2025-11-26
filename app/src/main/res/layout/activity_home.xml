@@ -112,19 +112,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:src="@mipmap/banner_placeholder"
+                    android:src="@drawable/banner"
                     android:contentDescription="Banner quảng cáo" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginBottom="16dp"
-                    android:text="UP TO 30% OFF CARDIO MACHINES"
-                    android:textColor="#FFFFFF"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
 
             </androidx.cardview.widget.CardView>
 
