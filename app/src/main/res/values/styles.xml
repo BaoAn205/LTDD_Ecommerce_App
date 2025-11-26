@@ -9,4 +9,4 @@
         <item name="android:textSize">12sp</item>
         <item name="android:drawablePadding">4dp</item>
     </style>
-    <resources>
+</resources>
