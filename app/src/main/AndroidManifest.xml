@@ -30,6 +30,7 @@
         <activity android:name=".WishlistActivity" />
         <activity android:name=".ProfileActivity" />
         <activity android:name=".CartActivity" />
+        <activity android:name=".CheckoutActivity" />
         <activity android:name=".AddressFormActivity" />
         <activity android:name=".AddressListActivity" />
 

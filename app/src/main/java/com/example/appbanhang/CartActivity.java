@@ -1,5 +1,6 @@
 package com.example.appbanhang;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +19,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +31,15 @@ public class CartActivity extends AppCompatActivity {
 
     private RecyclerView cartRecyclerView;
     private CartAdapter adapter;
-    private List<CartItem> cartItems;
+    private ArrayList<CartItem> cartItems;
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
 
     private TextView totalPriceTextView;
     private TextView emptyCartTextView;
     private ProgressBar progressBar;
+
+    private double totalPrice = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +56,8 @@ public class CartActivity extends AppCompatActivity {
 
         cartRecyclerView = findViewById(R.id.cartRecyclerView);
         totalPriceTextView = findViewById(R.id.totalPriceTextView);
-        emptyCartTextView = findViewById(R.id.emptyView); // Assuming you add this to your layout
-        progressBar = findViewById(R.id.progressBar); // Assuming you add this
+        emptyCartTextView = findViewById(R.id.emptyView);
+        progressBar = findViewById(R.id.progressBar);
         Button checkoutButton = findViewById(R.id.checkoutButton);
 
         setupRecyclerView();
@@ -67,7 +71,14 @@ public class CartActivity extends AppCompatActivity {
         loadCartItems();
 
         checkoutButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Chức năng thanh toán sắp ra mắt!", Toast.LENGTH_SHORT).show();
+            if (cartItems == null || cartItems.isEmpty()) {
+                Toast.makeText(this, "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
+            intent.putExtra("CART_ITEMS", (Serializable) cartItems);
+            intent.putExtra("TOTAL_PRICE", totalPrice);
+            startActivity(intent);
         });
     }
 
@@ -81,6 +92,7 @@ public class CartActivity extends AppCompatActivity {
     private void loadCartItems() {
         progressBar.setVisibility(View.VISIBLE);
         cartRecyclerView.setVisibility(View.GONE);
+        emptyCartTextView.setVisibility(View.GONE);
 
         db.collection("cart")
                 .whereEqualTo("userId", currentUser.getUid())
@@ -112,11 +124,11 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void updateTotalPrice() {
-        double total = 0;
+        totalPrice = 0;
         for (CartItem item : cartItems) {
-            total += item.getProductPrice() * item.getQuantity();
+            totalPrice += item.getProductPrice() * item.getQuantity();
         }
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-        totalPriceTextView.setText(formatter.format(total));
+        totalPriceTextView.setText(formatter.format(totalPrice));
     }
 }

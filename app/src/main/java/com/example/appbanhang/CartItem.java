@@ -1,8 +1,9 @@
 package com.example.appbanhang;
 
 import com.google.firebase.firestore.Exclude;
+import java.io.Serializable;
 
-public class CartItem {
+public class CartItem implements Serializable {
 
     @Exclude
     private String id; // Document ID in Firestore
