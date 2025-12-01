@@ -1,10 +1,13 @@
 package com.example.appbanhang;
 
+import androidx.annotation.Keep;
 import com.google.firebase.firestore.Exclude;
 import java.io.Serializable;
 
+@Keep
 public class Product implements Serializable {
 
+    // The document ID from Firestore. We use @Exclude so Firestore doesn't try to save it as a field.
     @Exclude
     private String id;
 
@@ -12,16 +15,15 @@ public class Product implements Serializable {
     private double price;
     private String image;
     private String description;
-    private String category; // New field for category
 
+    // Empty constructor required for Firestore
     public Product() {}
 
-    public Product(String name, double price, String image, String description, String category) {
+    public Product(String name, double price, String image, String description) {
         this.name = name;
         this.price = price;
         this.image = image;
         this.description = description;
-        this.category = category;
     }
 
     // --- Getters ---
@@ -45,10 +47,6 @@ public class Product implements Serializable {
         return description;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
     // --- Setters ---
     public void setId(String id) {
         this.id = id;
@@ -68,9 +66,5 @@ public class Product implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 }
