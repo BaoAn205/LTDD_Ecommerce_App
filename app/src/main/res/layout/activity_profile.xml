@@ -110,7 +110,7 @@
                 android:id="@+id/editProfileButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android.text="Sửa hồ sơ"
+                android:text="Sửa hồ sơ"
                 android:textSize="16sp"
                 android:textColor="#FF9800"
                 android:backgroundTint="#FFEDD6"

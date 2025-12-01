@@ -23,7 +23,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private TextView userNameTextView, userEmailTextView, logoutButton;
     private ImageView backButton;
-    private ConstraintLayout addressSection;
+    private ConstraintLayout myOrdersSection; // Renamed for clarity
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -42,7 +42,7 @@ public class ProfileActivity extends AppCompatActivity {
         userEmailTextView = findViewById(R.id.userEmail);
         logoutButton = findViewById(R.id.logoutButton);
         backButton = findViewById(R.id.backButton);
-        addressSection = findViewById(R.id.addressSection);
+        myOrdersSection = findViewById(R.id.ordersSection); // This is the "My Orders" button
 
         // Load user information
         loadUserProfile();
@@ -50,8 +50,8 @@ public class ProfileActivity extends AppCompatActivity {
         // Set up click listeners
         backButton.setOnClickListener(v -> finish()); // Simply close the activity
 
-        addressSection.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, AddressListActivity.class);
+        myOrdersSection.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, MyOrdersActivity.class);
             startActivity(intent);
         });
 
