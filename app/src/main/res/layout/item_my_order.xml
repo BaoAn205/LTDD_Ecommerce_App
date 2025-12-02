@@ -19,9 +19,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="@android:color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/order_status_textview"
+            android:layout_marginEnd="8dp"
             tools:text="Mã đơn hàng: 12345ABC" />
 
         <TextView
@@ -43,6 +45,19 @@
             tools:text="Tổng tiền: 2.500.000đ" />
 
         <TextView
+            android:id="@+id/order_items_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:lineSpacingExtra="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/order_total_textview"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="1. Tên sản phẩm A
+2. Tên sản phẩm B" />
+
+        <TextView
             android:id="@+id/order_status_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -55,7 +70,6 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             tools:text="Đang xử lý" />
 
 

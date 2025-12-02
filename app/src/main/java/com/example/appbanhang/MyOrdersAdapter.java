@@ -38,7 +38,8 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.OrderV
     }
 
     static class OrderViewHolder extends RecyclerView.ViewHolder {
-        TextView orderIdTextView, orderDateTextView, orderTotalTextView, orderStatusTextView;
+        // Thêm TextView cho danh sách sản phẩm
+        TextView orderIdTextView, orderDateTextView, orderTotalTextView, orderStatusTextView, orderItemsTextView;
 
         public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -46,21 +47,46 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.OrderV
             orderDateTextView = itemView.findViewById(R.id.order_date_textview);
             orderTotalTextView = itemView.findViewById(R.id.order_total_textview);
             orderStatusTextView = itemView.findViewById(R.id.order_status_textview);
+            // Tìm TextView mới bằng ID
+            orderItemsTextView = itemView.findViewById(R.id.order_items_textview);
         }
 
         void bind(Order order) {
-            // In a real app, you would have a real order ID. Here we use a placeholder.
             orderIdTextView.setText("Mã đơn hàng: #..." + itemView.getContext().getString(R.string.app_name) + getAdapterPosition());
 
             if (order.getOrderDate() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
                 orderDateTextView.setText("Ngày đặt: " + sdf.format(order.getOrderDate()));
+            } else {
+                orderDateTextView.setText("Ngày đặt: N/A");
             }
 
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             orderTotalTextView.setText("Tổng tiền: " + formatter.format(order.getTotalPrice()));
 
             orderStatusTextView.setText(order.getStatus());
+
+            // Logic mới để hiển thị danh sách sản phẩm
+            List<CartItem> items = order.getItems();
+            if (items != null && !items.isEmpty()) {
+                StringBuilder itemsBuilder = new StringBuilder();
+                for (int i = 0; i < items.size(); i++) {
+                    CartItem item = items.get(i);
+                    if (item != null && item.getProductName() != null) {
+                        itemsBuilder.append(i + 1)
+                                .append(". ")
+                                .append(item.getProductName());
+                        if (i < items.size() - 1) {
+                            itemsBuilder.append("\n"); // Xuống dòng cho sản phẩm tiếp theo
+                        }
+                    }
+                }
+                orderItemsTextView.setText(itemsBuilder.toString());
+                orderItemsTextView.setVisibility(View.VISIBLE);
+            } else {
+                // Ẩn đi nếu không có sản phẩm nào
+                orderItemsTextView.setVisibility(View.GONE);
+            }
         }
     }
 }

@@ -9,7 +9,7 @@ public class Order {
 
     private String userId;
     private List<CartItem> items;
-    private double totalPrice;
+    private Double totalPrice; // Changed from double to Double
     private String status;
     private Map<String, String> shippingAddress;
     @ServerTimestamp
@@ -37,10 +37,11 @@ public class Order {
     }
 
     public double getTotalPrice() {
-        return totalPrice;
+        // Return 0.0 if totalPrice is null to prevent NullPointerException
+        return totalPrice != null ? totalPrice : 0.0;
     }
 
-    public void setTotalPrice(double totalPrice) {
+    public void setTotalPrice(Double totalPrice) { // Changed parameter to Double
         this.totalPrice = totalPrice;
     }
 
