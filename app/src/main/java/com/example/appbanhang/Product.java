@@ -1,10 +1,8 @@
 package com.example.appbanhang;
 
-import androidx.annotation.Keep;
 import com.google.firebase.firestore.Exclude;
 import java.io.Serializable;
 
-@Keep
 public class Product implements Serializable {
 
     // The document ID from Firestore. We use @Exclude so Firestore doesn't try to save it as a field.

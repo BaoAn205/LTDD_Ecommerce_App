@@ -1,10 +1,8 @@
 package com.example.appbanhang;
 
-import androidx.annotation.Keep;
 import com.google.firebase.firestore.Exclude;
 import java.io.Serializable;
 
-@Keep
 public class CartItem implements Serializable {
 
     @Exclude

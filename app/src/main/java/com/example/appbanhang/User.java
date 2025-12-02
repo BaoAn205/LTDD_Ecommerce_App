@@ -1,11 +1,9 @@
 package com.example.appbanhang;
 
-import androidx.annotation.Keep;
 import com.google.firebase.firestore.PropertyName;
 
 import java.io.Serializable;
 
-@Keep
 public class User implements Serializable {
     private String fullName;
     private String email;
