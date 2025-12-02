@@ -5,7 +5,6 @@ import java.io.Serializable;
 
 public class Product implements Serializable {
 
-    // The document ID from Firestore. We use @Exclude so Firestore doesn't try to save it as a field.
     @Exclude
     private String id;
 
@@ -13,56 +12,68 @@ public class Product implements Serializable {
     private double price;
     private String image;
     private String description;
+    private String category; // Added category field
 
-    // Empty constructor required for Firestore
-    public Product() {}
+    public Product() {
+        // Required empty constructor for Firestore
+    }
 
-    public Product(String name, double price, String image, String description) {
+    // Updated constructor to include category
+    public Product(String name, double price, String image, String description, String category) {
         this.name = name;
         this.price = price;
         this.image = image;
         this.description = description;
+        this.category = category;
     }
 
-    // --- Getters ---
+    //<editor-fold desc="Getters and Setters">
     public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public double getPrice() {
-        return price;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    // --- Setters ---
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
     }
 
     public void setPrice(double price) {
         this.price = price;
     }
 
+    public String getImage() {
+        return image;
+    }
+
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+    //</editor-fold>
 }

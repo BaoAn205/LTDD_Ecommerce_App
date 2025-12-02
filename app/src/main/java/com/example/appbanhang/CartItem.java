@@ -10,9 +10,9 @@ public class CartItem implements Serializable {
 
     private String productId;
     private String productName;
-    private double productPrice;
+    private Double productPrice; // Changed from double to Double
     private String productImage;
-    private int quantity;
+    private Integer quantity;    // Changed from int to Integer
     private String userId;
 
     public CartItem() {
@@ -45,10 +45,11 @@ public class CartItem implements Serializable {
     }
 
     public double getProductPrice() {
-        return productPrice;
+        // Return 0.0 if productPrice is null to prevent NullPointerException
+        return productPrice != null ? productPrice : 0.0;
     }
 
-    public void setProductPrice(double productPrice) {
+    public void setProductPrice(Double productPrice) { // Changed parameter to Double
         this.productPrice = productPrice;
     }
 
@@ -61,10 +62,11 @@ public class CartItem implements Serializable {
     }
 
     public int getQuantity() {
-        return quantity;
+        // Return 0 if quantity is null to prevent NullPointerException
+        return quantity != null ? quantity : 0;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(Integer quantity) { // Changed parameter to Integer
         this.quantity = quantity;
     }
 
