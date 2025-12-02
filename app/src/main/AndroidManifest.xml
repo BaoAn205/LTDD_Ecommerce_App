@@ -29,7 +29,7 @@
         <activity android:name=".HelpActivity" />
         <activity android:name=".WishlistActivity" />
         <activity android:name=".ProfileActivity" />
-        <activity android:name=".EditProfileActivity" /> <!-- KHAI BÁO ĐÃ THÊM VÀO -->
+        <activity android:name=".EditProfileActivity" />
         <activity android:name=".CartActivity" />
         <activity android:name=".CheckoutActivity" />
         <activity android:name=".AddressFormActivity" />
@@ -41,6 +41,8 @@
         <activity android:name=".ManageProductsActivity" />
         <activity android:name=".AddEditProductActivity" />
         <activity android:name=".AdminUserManagementActivity" />
+        <activity android:name=".AdminManageOrdersActivity" /> <!-- NEW -->
+        <activity android:name=".AdminOrderDetailActivity" /> <!-- NEW -->
 
     </application>
 
