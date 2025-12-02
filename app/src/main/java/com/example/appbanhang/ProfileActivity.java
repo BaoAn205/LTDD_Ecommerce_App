@@ -23,8 +23,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     private TextView userNameTextView, userEmailTextView, logoutButton;
     private ImageView backButton;
-    // Thêm biến cho mục địa chỉ
-    private ConstraintLayout myOrdersSection, addressSection;
+    // Thêm biến cho các mục có thể nhấn
+    private ConstraintLayout myOrdersSection, addressSection, personalInfoSection;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -44,8 +44,8 @@ public class ProfileActivity extends AppCompatActivity {
         logoutButton = findViewById(R.id.logoutButton);
         backButton = findViewById(R.id.backButton);
         myOrdersSection = findViewById(R.id.ordersSection);
-        // Tìm view của mục địa chỉ bằng ID
         addressSection = findViewById(R.id.addressSection);
+        personalInfoSection = findViewById(R.id.personalInfoSection); // Tìm view của mục thông tin cá nhân
 
         // Load user information
         loadUserProfile();
@@ -53,12 +53,17 @@ public class ProfileActivity extends AppCompatActivity {
         // Set up click listeners
         backButton.setOnClickListener(v -> finish());
 
+        // Sự kiện click cho mục "Thông tin cá nhân"
+        personalInfoSection.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivity(intent);
+        });
+
         myOrdersSection.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, MyOrdersActivity.class);
             startActivity(intent);
         });
 
-        // Thêm sự kiện click cho mục địa chỉ
         addressSection.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, AddressListActivity.class);
             startActivity(intent);
