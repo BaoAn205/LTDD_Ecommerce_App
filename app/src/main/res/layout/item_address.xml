@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
     android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#E0E0E0">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -20,58 +21,64 @@
             android:id="@+id/receiverNameAndPhone"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Lê Phụng | 0987654321"
-            android:textColor="@color/white"
+            android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/defaultAddressChip"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/deleteAddressButton"
+            android:layout_marginEnd="8dp"
+            tools:text="Phạm Bảo An | 0123456789" />
 
         <TextView
             android:id="@+id/streetAddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="123 Đường ABC, Phường XYZ"
-            android:textColor="#FFFFFF"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="@android:color/darker_gray"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/receiverNameAndPhone" />
+            app:layout_constraintTop_toBottomOf="@+id/receiverNameAndPhone"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Hiệp Phú" />
 
         <TextView
             android:id="@+id/cityAddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Quận G, TP. Hồ Chí Minh"
-            android:textColor="#F8F8F8"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="@android:color/darker_gray"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/streetAddress" />
+            app:layout_constraintTop_toBottomOf="@id/streetAddress"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Thủ Đức" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/defaultAddressChip"
             style="@style/Widget.MaterialComponents.Chip.Action"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:text="Mặc định"
+            android:clickable="false"
+            app:chipBackgroundColor="#1976D2"
+            app:chipCornerRadius="8dp"
+            android:textColor="@android:color/white"
             android:visibility="gone"
-            app:chipBackgroundColor="#FFE8D1"
-            app:chipStrokeColor="#FF9800"
-            app:chipStrokeWidth="1dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cityAddress"
+            android:layout_marginTop="12dp"
+            tools:visibility="visible"/>
 
         <ImageButton
             android:id="@+id/deleteAddressButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_delete"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_delete_outline"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:tint="@android:color/darker_gray"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             android:contentDescription="Xóa địa chỉ" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

@@ -1,6 +1,7 @@
 package com.example.appbanhang;
 
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.PropertyName;
 
 import java.io.Serializable;
 
@@ -24,7 +25,6 @@ public class Address implements Serializable {
         this.isDefault = isDefault;
     }
 
-    // Exclude the ID from being serialized to Firestore, as it's the document ID.
     @Exclude
     public String getId() {
         return id;
@@ -34,7 +34,6 @@ public class Address implements Serializable {
         this.id = id;
     }
 
-    // Other getters and setters
     public String getReceiverName() {
         return receiverName;
     }
@@ -67,10 +66,14 @@ public class Address implements Serializable {
         this.city = city;
     }
 
+    // Map this method to the "default" field in Firestore
+    @PropertyName("default")
     public boolean isDefault() {
         return isDefault;
     }
 
+    // Map this method to the "default" field in Firestore
+    @PropertyName("default")
     public void setDefault(boolean aDefault) {
         isDefault = aDefault;
     }

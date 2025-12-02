@@ -4,11 +4,12 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -19,8 +20,9 @@ import com.google.firebase.firestore.WriteBatch;
 public class AddressFormActivity extends AppCompatActivity {
 
     private EditText inputReceiverName, inputPhoneNumber, inputStreetAddress, inputCity;
-    private Switch switchDefaultAddress;
+    private SwitchMaterial switchDefaultAddress;
     private Button btnSaveAddress;
+    private MaterialToolbar toolbar;
 
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
@@ -32,6 +34,13 @@ public class AddressFormActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        // --- Toolbar Setup ---
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(v -> finish()); // Handle back press
+        // ---------------------
 
         inputReceiverName = findViewById(R.id.inputReceiverName);
         inputPhoneNumber = findViewById(R.id.inputPhoneNumber);
