@@ -25,7 +25,7 @@ public class ProfileFragment extends Fragment {
     private static final String TAG = "ProfileFragment";
 
     private TextView userNameTextView, userEmailTextView, logoutButton;
-    private ConstraintLayout myOrdersSection, addressSection, personalInfoSection;
+    private ConstraintLayout myOrdersSection, addressSection, personalInfoSection, settingsSection;
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
@@ -52,6 +52,7 @@ public class ProfileFragment extends Fragment {
         myOrdersSection = view.findViewById(R.id.ordersSection);
         addressSection = view.findViewById(R.id.addressSection);
         personalInfoSection = view.findViewById(R.id.personalInfoSection);
+        settingsSection = view.findViewById(R.id.settingsSection);
 
         // Set up click listeners
         setupClickListeners();
@@ -75,6 +76,10 @@ public class ProfileFragment extends Fragment {
 
         addressSection.setOnClickListener(v -> {
             startActivity(new Intent(getActivity(), AddressListActivity.class));
+        });
+
+        settingsSection.setOnClickListener(v -> {
+            startActivity(new Intent(getActivity(), SettingsActivity.class));
         });
 
         logoutButton.setOnClickListener(v -> {
