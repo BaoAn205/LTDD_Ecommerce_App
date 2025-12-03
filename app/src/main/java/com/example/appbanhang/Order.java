@@ -1,5 +1,6 @@
 package com.example.appbanhang;
 
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.util.Date;
 import java.util.List;
@@ -7,9 +8,12 @@ import java.util.Map;
 
 public class Order {
 
+    @Exclude // Exclude from Firestore serialization
+    private String id;
+
     private String userId;
     private List<CartItem> items;
-    private Double totalPrice; // Changed from double to Double
+    private Double totalPrice;
     private String status;
     private Map<String, String> shippingAddress;
     @ServerTimestamp
@@ -19,7 +23,16 @@ public class Order {
         // Required empty constructor for Firestore
     }
 
-    // <editor-fold desc="Getters and Setters">
+    // Getter and Setter for the ID
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    // <editor-fold desc="Other Getters and Setters">
     public String getUserId() {
         return userId;
     }
@@ -37,11 +50,10 @@ public class Order {
     }
 
     public double getTotalPrice() {
-        // Return 0.0 if totalPrice is null to prevent NullPointerException
         return totalPrice != null ? totalPrice : 0.0;
     }
 
-    public void setTotalPrice(Double totalPrice) { // Changed parameter to Double
+    public void setTotalPrice(Double totalPrice) {
         this.totalPrice = totalPrice;
     }
 
