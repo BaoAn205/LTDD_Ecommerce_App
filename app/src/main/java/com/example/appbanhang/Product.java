@@ -12,13 +12,15 @@ public class Product implements Serializable {
     private double price;
     private String image;
     private String description;
-    private String category; // Added category field
+    private String category;
+
+    @Exclude // This field is calculated, not stored in Firestore product documents
+    private int soldCount = 0;
 
     public Product() {
         // Required empty constructor for Firestore
     }
 
-    // Updated constructor to include category
     public Product(String name, double price, String image, String description, String category) {
         this.name = name;
         this.price = price;
@@ -74,6 +76,14 @@ public class Product implements Serializable {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public int getSoldCount() {
+        return soldCount;
+    }
+
+    public void setSoldCount(int soldCount) {
+        this.soldCount = soldCount;
     }
     //</editor-fold>
 }

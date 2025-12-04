@@ -24,9 +24,9 @@
                 android:id="@+id/appName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FitGear"
+                android:text="Fitness Shark"
                 android:textColor="@color/white"
-                android:textSize="24sp"
+                android:textSize="26sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -64,14 +64,28 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/rounded_search_background"
+            android:theme="@style/ThemeOverlay.AppCompat.Light" 
             app:iconifiedByDefault="false"
             app:queryHint="Search treadmills, dumbbells..."
             app:queryBackground="@android:color/transparent"
             app:layout_constraintTop_toBottomOf="@id/appBar"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toStartOf="@+id/filterButton" />
+
+        <ImageButton
+            android:id="@+id/filterButton"
+            android:layout_width="48dp"
+            android:layout_height="0dp"
+            android:src="@drawable/ic_filter_list"
+            android:background="@drawable/rounded_search_background"
+            android:layout_marginEnd="16dp"
+            app:tint="@android:color/black" 
+            app:layout_constraintTop_toTopOf="@+id/searchView"
+            app:layout_constraintBottom_toBottomOf="@+id/searchView"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:contentDescription="Lọc sản phẩm"/>
 
         <androidx.cardview.widget.CardView
             android:id="@+id/mainBannerCard"

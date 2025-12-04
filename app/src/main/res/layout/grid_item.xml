@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="220dp" 
+    android:layout_height="240dp" 
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp">
 
@@ -38,6 +38,20 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="Product Name Here This is a very long name" />
 
+        <TextView
+            android:id="@+id/gridTextSoldCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="4dp"
+            android:textSize="12sp"
+            android:textColor="#FFC107"
+            android:drawablePadding="4dp"
+            app:drawableTint="#FFC107"
+            app:layout_constraintBottom_toTopOf="@id/gridTextPrice"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="Đã bán 123" />
+            
         <TextView
             android:id="@+id/gridTextPrice"
             android:layout_width="0dp"

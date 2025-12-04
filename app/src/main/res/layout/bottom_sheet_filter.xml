@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sắp xếp theo"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/filter_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/filter_default"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mặc định"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/filter_price_asc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Giá: Thấp đến Cao"/>
+
+        <RadioButton
+            android:id="@+id/filter_price_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Giá: Cao đến Thấp"/>
+
+        <RadioButton
+            android:id="@+id/filter_best_selling"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bán chạy nhất"/>
+
+        <!-- We can add Rating filter later if you have rating data -->
+        <!--
+        <RadioButton
+            android:id="@+id/filter_rating_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đánh giá cao nhất"/>
+        -->
+
+    </RadioGroup>
+
+</LinearLayout>

@@ -25,9 +25,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements FilterBottomSheetFragment.FilterListener {
 
     private ExpandableHeightGridView gridView;
     private GridAdapter adapter;
@@ -39,7 +42,7 @@ public class HomeFragment extends Fragment {
     private Button weightsButton, cardioButton, apparelButton, yogaButton;
     private String selectedCategory = null;
     private TextView seeAllButton;
-    private ImageButton notificationButton, cartButton;
+    private ImageButton notificationButton, cartButton, filterButton; // **THÊM NÚT LỌC**
 
     private Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
@@ -61,7 +64,7 @@ public class HomeFragment extends Fragment {
         setupClickListeners();
         setupSearchView();
         setupGridView();
-        fetchProductsFromFirestore();
+        fetchData();
     }
 
     private void initializeViews(View view) {
@@ -73,6 +76,7 @@ public class HomeFragment extends Fragment {
         yogaButton = view.findViewById(R.id.Yoga);
         seeAllButton = view.findViewById(R.id.seeAllText);
         searchView = view.findViewById(R.id.searchView);
+        filterButton = view.findViewById(R.id.filterButton); // **TÌM NÚT LỌC**
         gridView = view.findViewById(R.id.gridView);
     }
 
@@ -88,6 +92,12 @@ public class HomeFragment extends Fragment {
             selectedCategory = null;
             updateCategoryButtonsUI();
             applyFilters();
+        });
+
+        // **SỰ KIỆN CLICK CHO NÚT LỌC**
+        filterButton.setOnClickListener(v -> {
+            FilterBottomSheetFragment filterSheet = new FilterBottomSheetFragment();
+            filterSheet.show(getChildFragmentManager(), FilterBottomSheetFragment.TAG);
         });
 
          gridView.setOnItemClickListener((parent, view, position, id) -> {
@@ -110,7 +120,30 @@ public class HomeFragment extends Fragment {
         gridView.setAdapter(adapter);
     }
 
-    private void fetchProductsFromFirestore() {
+    private void fetchData() {
+        db.collection("orders")
+                .whereEqualTo("status", "Đã xử lý")
+                .get()
+                .addOnSuccessListener(orderSnapshots -> {
+                    Map<String, Integer> soldCounts = new HashMap<>();
+                    for (QueryDocumentSnapshot orderDoc : orderSnapshots) {
+                        Order order = orderDoc.toObject(Order.class);
+                        if (order.getItems() != null) {
+                            for (CartItem item : order.getItems()) {
+                                int currentCount = soldCounts.getOrDefault(item.getProductId(), 0);
+                                soldCounts.put(item.getProductId(), currentCount + item.getQuantity());
+                            }
+                        }
+                    }
+                    fetchProductsAndApplyCounts(soldCounts);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching orders for sold counts", e);
+                    fetchProductsAndApplyCounts(new HashMap<>());
+                });
+    }
+
+    private void fetchProductsAndApplyCounts(Map<String, Integer> soldCounts) {
         db.collection("products")
                 .get()
                 .addOnCompleteListener(task -> {
@@ -119,11 +152,13 @@ public class HomeFragment extends Fragment {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Product product = document.toObject(Product.class);
                             product.setId(document.getId());
+                            int count = soldCounts.getOrDefault(product.getId(), 0);
+                            product.setSoldCount(count);
                             allProductList.add(product);
                         }
-                        applyFilters(); // Initial filter apply
+                        applyFilters();
                     } else {
-                        Log.w(TAG, "Error getting documents.", task.getException());
+                        Log.w(TAG, "Error getting products.", task.getException());
                     }
                 });
     }
@@ -177,6 +212,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    // **HÀM ÁP DỤNG CÁC BỘ LỌC**
     private void applyFilters() {
         String query = searchView.getQuery().toString().toLowerCase().trim();
         List<Product> filteredList = new ArrayList<>();
@@ -196,5 +232,27 @@ public class HomeFragment extends Fragment {
         displayedProductList.clear();
         displayedProductList.addAll(filteredList);
         adapter.notifyDataSetChanged();
+    }
+
+    // **HÀM NHẬN SỰ KIỆN TỪ BẢNG LỌC**
+    @Override
+    public void onFilterSelected(FilterBottomSheetFragment.SortOption sortOption) {
+        switch (sortOption) {
+            case PRICE_ASC:
+                Collections.sort(allProductList, (p1, p2) -> Double.compare(p1.getPrice(), p2.getPrice()));
+                break;
+            case PRICE_DESC:
+                Collections.sort(allProductList, (p1, p2) -> Double.compare(p2.getPrice(), p1.getPrice()));
+                break;
+            case BEST_SELLING:
+                Collections.sort(allProductList, (p1, p2) -> Integer.compare(p2.getSoldCount(), p1.getSoldCount()));
+                break;
+            case DEFAULT:
+                // No specific sort order, can be left as is or sorted by name, etc.
+                // For now, we do nothing to revert to the original Firestore order.
+                // To be more robust, you might want to re-fetch or sort by a default criterion.
+                break;
+        }
+        applyFilters(); // Re-apply filters to show the sorted list
     }
 }

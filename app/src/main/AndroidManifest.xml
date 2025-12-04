@@ -35,6 +35,7 @@
         <activity android:name=".AddressFormActivity" />
         <activity android:name=".AddressListActivity" />
         <activity android:name=".MyOrdersActivity" />
+        <activity android:name=".SettingsActivity" /> <!-- KHAI BÁO ĐÃ THÊM VÀO -->
 
         <!-- Admin-facing Activities -->
         <activity android:name=".AdminHomeActivity" />
@@ -43,7 +44,7 @@
         <activity android:name=".AdminUserManagementActivity" />
         <activity android:name=".AdminManageOrdersActivity" />
         <activity android:name=".AdminOrderDetailActivity" />
-        <activity android:name=".RevenueManagementActivity" /> <!-- NEW -->
+        <activity android:name=".RevenueManagementActivity" />
 
     </application>
 

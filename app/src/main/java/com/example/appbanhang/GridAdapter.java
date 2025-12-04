@@ -46,6 +46,7 @@ public class GridAdapter extends ArrayAdapter<Product> {
         ImageView imageView = listItemView.findViewById(R.id.gridImage);
         TextView nameTextView = listItemView.findViewById(R.id.gridTextName);
         TextView priceTextView = listItemView.findViewById(R.id.gridTextPrice);
+        TextView soldCountTextView = listItemView.findViewById(R.id.gridTextSoldCount);
         ImageButton addToCartButton = listItemView.findViewById(R.id.addToCartButton);
 
         if (currentProduct != null) {
@@ -53,6 +54,11 @@ public class GridAdapter extends ArrayAdapter<Product> {
 
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             priceTextView.setText(formatter.format(currentProduct.getPrice()));
+
+            // **SỬA LẠI LOGIC HIỂN THỊ SỐ LƯỢNG ĐÃ BÁN**
+            // Luôn hiển thị, kể cả khi số lượng là 0
+            soldCountTextView.setText("Đã bán " + currentProduct.getSoldCount());
+            soldCountTextView.setVisibility(View.VISIBLE);
 
             int imageId = getContext().getResources().getIdentifier(currentProduct.getImage(), "drawable", getContext().getPackageName());
             if (imageId != 0) {
