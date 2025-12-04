@@ -19,9 +19,6 @@ import androidx.core.app.ActivityOptionsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -29,8 +26,7 @@ import java.util.Locale;
 
 public class GridAdapter extends ArrayAdapter<Product> {
 
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    private final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
     public GridAdapter(@NonNull Context context, @NonNull List<Product> products) {
         super(context, 0, products);
@@ -86,40 +82,17 @@ public class GridAdapter extends ArrayAdapter<Product> {
             return;
         }
 
-        String userId = currentUser.getUid();
+        CartManager.getInstance().addProduct(getContext(), currentUser.getUid(), product, 1, new CartManager.CartCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(getContext(), "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+            }
 
-        db.collection("cart")
-                .whereEqualTo("userId", userId)
-                .whereEqualTo("productId", product.getId())
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot snapshot = task.getResult();
-                        if (snapshot != null && !snapshot.isEmpty()) {
-                            // Product exists, update quantity
-                            DocumentReference docRef = snapshot.getDocuments().get(0).getReference();
-                            int currentQuantity = snapshot.getDocuments().get(0).getLong("quantity").intValue();
-                            docRef.update("quantity", currentQuantity + 1)
-                                    .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Đã cập nhật giỏ hàng", Toast.LENGTH_SHORT).show())
-                                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                        } else {
-                            // Product does not exist, create new cart item
-                            CartItem newItem = new CartItem();
-                            newItem.setUserId(userId);
-                            newItem.setProductId(product.getId());
-                            newItem.setProductName(product.getName());
-                            newItem.setProductPrice(product.getPrice());
-                            newItem.setProductImage(product.getImage());
-                            newItem.setQuantity(1);
-
-                            db.collection("cart").add(newItem)
-                                    .addOnSuccessListener(documentReference -> Toast.makeText(getContext(), "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show())
-                                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                        }
-                    } else {
-                        Log.w("GridAdapter", "Error checking cart", task.getException());
-                        Toast.makeText(getContext(), "Lỗi khi kiểm tra giỏ hàng", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.w("GridAdapter", "Error adding to cart", e);
+            }
+        });
     }
 }

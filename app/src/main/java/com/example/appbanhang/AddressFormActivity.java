@@ -70,16 +70,22 @@ public class AddressFormActivity extends AppCompatActivity {
         }
 
         CollectionReference addressesRef = db.collection("users").document(currentUser.getUid()).collection("addresses");
-        Address newAddress = new Address(receiverName, phoneNumber, streetAddress, city, isDefault);
+        
+        // Create Address object using setters
+        Address newAddress = new Address();
+        newAddress.setReceiverName(receiverName); // Corrected method name
+        newAddress.setPhoneNumber(phoneNumber);
+        newAddress.setStreetAddress(streetAddress);
+        newAddress.setCity(city);
+        newAddress.setDefault(isDefault);
 
         if (isDefault) {
             // If this new address is set to default, we must unset any other default address.
-            Query query = addressesRef.whereEqualTo("default", true);
-            query.get().addOnCompleteListener(task -> {
+            addressesRef.whereEqualTo("isDefault", true).get().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     WriteBatch batch = db.batch();
                     task.getResult().forEach(documentSnapshot -> {
-                        batch.update(documentSnapshot.getReference(), "default", false);
+                        batch.update(documentSnapshot.getReference(), "isDefault", false);
                     });
                     // Add the new address and commit the batch
                     batch.set(addressesRef.document(), newAddress);

@@ -16,6 +16,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.text.NumberFormat;
@@ -89,26 +91,43 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void populateUserInfo() {
-        db.collection("users").document(currentUser.getUid()).get().addOnSuccessListener(userDocument -> {
-            if (userDocument.exists()) {
-                String fullName = userDocument.getString("fullName");
-                db.collection("users").document(currentUser.getUid()).collection("addresses").limit(1).get()
-                    .addOnSuccessListener(addressSnapshot -> {
-                        if (!addressSnapshot.isEmpty()) {
-                            DocumentReference firstAddressDoc = addressSnapshot.getDocuments().get(0).getReference();
-                            firstAddressDoc.get().addOnSuccessListener(addressDocument -> {
-                                String street = addressDocument.getString("streetAddress");
-                                String city = addressDocument.getString("city");
-                                String phone = addressDocument.getString("phoneNumber");
+        db.collection("users").document(currentUser.getUid()).collection("addresses")
+            .whereEqualTo("default", true) // Corrected field name to match Address class
+            .limit(1)
+            .get()
+            .addOnSuccessListener(addressSnapshot -> {
+                if (!addressSnapshot.isEmpty()) {
+                    // Default address found
+                    DocumentReference defaultAddressDoc = addressSnapshot.getDocuments().get(0).getReference();
+                    updateAddressViews(defaultAddressDoc);
+                } else {
+                    // No default address, try to get any address
+                    db.collection("users").document(currentUser.getUid()).collection("addresses")
+                        .limit(1)
+                        .get()
+                        .addOnSuccessListener(anyAddressSnapshot -> {
+                            if (!anyAddressSnapshot.isEmpty()) {
+                                DocumentReference anyAddressDoc = anyAddressSnapshot.getDocuments().get(0).getReference();
+                                updateAddressViews(anyAddressDoc);
+                            } else {
+                                // No addresses at all
+                                userAddress.setText("Chưa có thông tin địa chỉ");
+                            }
+                        });
+                }
+            });
+    }
+    
+    private void updateAddressViews(DocumentReference addressRef) {
+        addressRef.get().addOnSuccessListener(addressDocument -> {
+            if (addressDocument.exists()) {
+                String receiverName = addressDocument.getString("receiverName"); // Corrected field name
+                String street = addressDocument.getString("streetAddress");
+                String city = addressDocument.getString("city");
+                String phone = addressDocument.getString("phoneNumber");
 
-                                userNameAndPhone.setText(String.format("%s | %s", fullName, phone));
-                                userAddress.setText(String.format("%s, %s", street, city));
-                            });
-                        } else {
-                            userNameAndPhone.setText(String.format("%s | Chưa có SĐT", fullName));
-                            userAddress.setText("Chưa có thông tin địa chỉ");
-                        }
-                    });
+                userNameAndPhone.setText(String.format("%s | %s", receiverName, phone));
+                userAddress.setText(String.format("%s, %s", street, city));
             }
         });
     }
@@ -123,11 +142,10 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void placeOrder(android.view.View button) {
         button.setEnabled(false);
-        Toast.makeText(this, "Đặt hàng thành công", Toast.LENGTH_SHORT).show();
 
         // Create Address Map
         Map<String, String> shippingAddress = new HashMap<>();
-        String[] nameAndPhone = userNameAndPhone.getText().toString().split("\\|");
+        String[] nameAndPhone = userNameAndPhone.getText().toString().split("\\s\\|\\s");
         shippingAddress.put("fullName", nameAndPhone.length > 0 ? nameAndPhone[0].trim() : "");
         shippingAddress.put("phoneNumber", nameAndPhone.length > 1 ? nameAndPhone[1].trim() : "");
         shippingAddress.put("streetAddress", userAddress.getText().toString());
@@ -151,10 +169,10 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void clearCart() {
         WriteBatch batch = db.batch();
-        db.collection("cart").whereEqualTo("userId", currentUser.getUid()).get()
+        db.collection("users").document(currentUser.getUid()).collection("cart").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (DocumentReference doc : queryDocumentSnapshots.getDocuments().stream().map(d -> d.getReference()).toList()) {
-                        batch.delete(doc);
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        batch.delete(document.getReference());
                     }
                     batch.commit().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
@@ -162,8 +180,14 @@ public class CheckoutActivity extends AppCompatActivity {
                         } else {
                             Log.e(TAG, "Error clearing cart", task.getException());
                             Toast.makeText(CheckoutActivity.this, "Đặt hàng thành công, nhưng có lỗi khi xóa giỏ hàng.", Toast.LENGTH_LONG).show();
+                            onCartClearedSuccessfully();
                         }
                     });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting cart items to delete", e);
+                    Toast.makeText(CheckoutActivity.this, "Đặt hàng thành công, nhưng có lỗi khi truy cập giỏ hàng để xóa.", Toast.LENGTH_LONG).show();
+                    onCartClearedSuccessfully();
                 });
     }
 

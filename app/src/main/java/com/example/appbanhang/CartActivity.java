@@ -18,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
@@ -70,21 +71,43 @@ public class CartActivity extends AppCompatActivity {
 
         loadCartItems();
 
-        checkoutButton.setOnClickListener(v -> {
-            if (cartItems == null || cartItems.isEmpty()) {
-                Toast.makeText(this, "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
-            intent.putExtra("CART_ITEMS", (Serializable) cartItems);
-            intent.putExtra("TOTAL_PRICE", totalPrice);
-            startActivity(intent);
-        });
+        checkoutButton.setOnClickListener(v -> handleCheckout());
+    }
+
+    private void handleCheckout() {
+        if (cartItems == null || cartItems.isEmpty()) {
+            Toast.makeText(this, "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check for address before proceeding to checkout
+        db.collection("users").document(currentUser.getUid()).collection("addresses")
+                .limit(1) // We only need to know if at least one address exists
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot snapshot = task.getResult();
+                        if (snapshot != null && !snapshot.isEmpty()) {
+                            // Address exists, proceed to checkout
+                            Intent intent = new Intent(CartActivity.this, CheckoutActivity.class);
+                            intent.putExtra("CART_ITEMS", (Serializable) cartItems);
+                            intent.putExtra("TOTAL_PRICE", totalPrice);
+                            startActivity(intent);
+                        } else {
+                            // No address found, redirect to add address form
+                            Toast.makeText(CartActivity.this, "Vui lòng thêm địa chỉ giao hàng", Toast.LENGTH_LONG).show();
+                            startActivity(new Intent(CartActivity.this, AddressFormActivity.class));
+                        }
+                    } else {
+                        Log.e(TAG, "Error checking for address", task.getException());
+                        Toast.makeText(CartActivity.this, "Lỗi khi kiểm tra địa chỉ.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void setupRecyclerView() {
         cartItems = new ArrayList<>();
-        adapter = new CartAdapter(cartItems, this::loadCartItems); // Pass callback to refresh
+        adapter = new CartAdapter(cartItems, this::loadCartItems);
         cartRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         cartRecyclerView.setAdapter(adapter);
     }
@@ -94,8 +117,7 @@ public class CartActivity extends AppCompatActivity {
         cartRecyclerView.setVisibility(View.GONE);
         emptyCartTextView.setVisibility(View.GONE);
 
-        db.collection("cart")
-                .whereEqualTo("userId", currentUser.getUid())
+        db.collection("users").document(currentUser.getUid()).collection("cart")
                 .get()
                 .addOnCompleteListener(task -> {
                     progressBar.setVisibility(View.GONE);
