@@ -35,15 +35,15 @@
         <activity android:name=".AddressFormActivity" />
         <activity android:name=".AddressListActivity" />
         <activity android:name=".MyOrdersActivity" />
-        <activity android:name=".SettingsActivity" />
 
         <!-- Admin-facing Activities -->
         <activity android:name=".AdminHomeActivity" />
         <activity android:name=".ManageProductsActivity" />
         <activity android:name=".AddEditProductActivity" />
         <activity android:name=".AdminUserManagementActivity" />
-        <activity android:name=".AdminManageOrdersActivity" /> <!-- NEW -->
-        <activity android:name=".AdminOrderDetailActivity" /> <!-- NEW -->
+        <activity android:name=".AdminManageOrdersActivity" />
+        <activity android:name=".AdminOrderDetailActivity" />
+        <activity android:name=".RevenueManagementActivity" /> <!-- NEW -->
 
     </application>
 

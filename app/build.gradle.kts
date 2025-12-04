@@ -52,4 +52,7 @@ dependencies {
     // Navigation Component Dependencies
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+
+    // Chart Library
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
