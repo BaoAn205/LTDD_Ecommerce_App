@@ -10,7 +10,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class AdminHomeActivity extends AppCompatActivity {
 
-    private CardView manageProductsCard, manageUsersCard, manageOrdersCard;
+    private CardView manageProductsCard, manageUsersCard, manageOrdersCard, manageRevenueCard;
     private Button adminLogoutButton;
     private FirebaseAuth mAuth;
 
@@ -24,7 +24,8 @@ public class AdminHomeActivity extends AppCompatActivity {
         // Initialize Cards
         manageProductsCard = findViewById(R.id.manageProductsCard);
         manageUsersCard = findViewById(R.id.manageUsersCard);
-        manageOrdersCard = findViewById(R.id.manageOrdersCard); // Find the new card
+        manageOrdersCard = findViewById(R.id.manageOrdersCard);
+        manageRevenueCard = findViewById(R.id.manageRevenueCard); // Find the new card
 
         // Initialize Button
         adminLogoutButton = findViewById(R.id.adminLogoutButton);
@@ -38,9 +39,13 @@ public class AdminHomeActivity extends AppCompatActivity {
             startActivity(new Intent(AdminHomeActivity.this, AdminUserManagementActivity.class));
         });
 
-        // Add click listener for the new card
         manageOrdersCard.setOnClickListener(v -> {
             startActivity(new Intent(AdminHomeActivity.this, AdminManageOrdersActivity.class));
+        });
+
+        // Add click listener for the new card
+        manageRevenueCard.setOnClickListener(v -> {
+            startActivity(new Intent(AdminHomeActivity.this, RevenueManagementActivity.class));
         });
 
         adminLogoutButton.setOnClickListener(v -> {
