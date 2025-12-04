@@ -20,11 +20,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,11 +44,18 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
     private Button weightsButton, cardioButton, apparelButton, yogaButton;
     private String selectedCategory = null;
     private TextView seeAllButton;
-    private ImageButton notificationButton, cartButton, filterButton; // **THÊM NÚT LỌC**
+    private ImageButton notificationButton, cartButton, filterButton;
+
+    // SLIDER COMPONENTS
+    private ViewPager2 imageSlider;
+    private ImageSliderAdapter sliderAdapter;
+    private Handler sliderHandler = new Handler(Looper.getMainLooper());
+    private Runnable sliderRunnable;
 
     private Handler searchHandler = new Handler(Looper.getMainLooper());
-    private Runnable searchRunnable;
+    private Runnable searchRunnableDelay;
     private static final long DEBOUNCE_DELAY = 500;
+    private static final long SLIDER_DELAY = 5000;
 
     private static final String TAG = "HomeFragment";
 
@@ -61,6 +70,7 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
         super.onViewCreated(view, savedInstanceState);
 
         initializeViews(view);
+        setupSlider(view);
         setupClickListeners();
         setupSearchView();
         setupGridView();
@@ -76,8 +86,36 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
         yogaButton = view.findViewById(R.id.Yoga);
         seeAllButton = view.findViewById(R.id.seeAllText);
         searchView = view.findViewById(R.id.searchView);
-        filterButton = view.findViewById(R.id.filterButton); // **TÌM NÚT LỌC**
+        filterButton = view.findViewById(R.id.filterButton);
         gridView = view.findViewById(R.id.gridView);
+        imageSlider = view.findViewById(R.id.imageSlider);
+    }
+
+    private void setupSlider(View view) {
+        List<Integer> sliderImages = Arrays.asList(
+                R.drawable.banner,
+                R.drawable.banner2,
+                R.drawable.banner3
+        );
+
+        sliderAdapter = new ImageSliderAdapter(getContext(), sliderImages);
+        imageSlider.setAdapter(sliderAdapter);
+
+        // Logic tự động lướt ảnh
+        sliderRunnable = () -> {
+            int currentItem = imageSlider.getCurrentItem();
+            int nextItem = (currentItem + 1) % sliderAdapter.getItemCount();
+            imageSlider.setCurrentItem(nextItem, true);
+        };
+
+        imageSlider.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                sliderHandler.removeCallbacks(sliderRunnable);
+                sliderHandler.postDelayed(sliderRunnable, SLIDER_DELAY);
+            }
+        });
     }
 
     private void setupClickListeners() {
@@ -94,7 +132,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
             applyFilters();
         });
 
-        // **SỰ KIỆN CLICK CHO NÚT LỌC**
         filterButton.setOnClickListener(v -> {
             FilterBottomSheetFragment filterSheet = new FilterBottomSheetFragment();
             filterSheet.show(getChildFragmentManager(), FilterBottomSheetFragment.TAG);
@@ -110,6 +147,18 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
                     getActivity(), productImageView, "product_image_transition");
             startActivity(intent, options.toBundle());
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        sliderHandler.postDelayed(sliderRunnable, SLIDER_DELAY);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        sliderHandler.removeCallbacks(sliderRunnable);
     }
 
     private void setupGridView(){
@@ -164,20 +213,20 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
     }
 
     private void setupSearchView() {
-        searchRunnable = this::applyFilters;
+        searchRunnableDelay = this::applyFilters;
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                searchHandler.removeCallbacks(searchRunnable);
+                searchHandler.removeCallbacks(searchRunnableDelay);
                 applyFilters();
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                searchHandler.removeCallbacks(searchRunnable);
-                searchHandler.postDelayed(searchRunnable, DEBOUNCE_DELAY);
+                searchHandler.removeCallbacks(searchRunnableDelay);
+                searchHandler.postDelayed(searchRunnableDelay, DEBOUNCE_DELAY);
                 return true;
             }
         });
@@ -212,7 +261,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
         }
     }
 
-    // **HÀM ÁP DỤNG CÁC BỘ LỌC**
     private void applyFilters() {
         String query = searchView.getQuery().toString().toLowerCase().trim();
         List<Product> filteredList = new ArrayList<>();
@@ -234,7 +282,6 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
         adapter.notifyDataSetChanged();
     }
 
-    // **HÀM NHẬN SỰ KIỆN TỪ BẢNG LỌC**
     @Override
     public void onFilterSelected(FilterBottomSheetFragment.SortOption sortOption) {
         switch (sortOption) {
@@ -248,11 +295,8 @@ public class HomeFragment extends Fragment implements FilterBottomSheetFragment.
                 Collections.sort(allProductList, (p1, p2) -> Integer.compare(p2.getSoldCount(), p1.getSoldCount()));
                 break;
             case DEFAULT:
-                // No specific sort order, can be left as is or sorted by name, etc.
-                // For now, we do nothing to revert to the original Firestore order.
-                // To be more robust, you might want to re-fetch or sort by a default criterion.
                 break;
         }
-        applyFilters(); // Re-apply filters to show the sorted list
+        applyFilters();
     }
 }

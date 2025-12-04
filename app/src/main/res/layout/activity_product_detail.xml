@@ -44,6 +44,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:scaleType="centerCrop"
+                android:transitionName="product_image_transition" 
                 tools:src="@drawable/pic1" />
 
             <LinearLayout

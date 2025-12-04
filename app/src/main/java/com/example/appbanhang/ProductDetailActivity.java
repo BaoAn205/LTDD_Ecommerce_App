@@ -58,7 +58,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        // --- View Initialization ---
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         ImageView productImageView = findViewById(R.id.product_detail_image);
         TextView productNameView = findViewById(R.id.product_detail_name);
@@ -74,10 +73,9 @@ public class ProductDetailActivity extends AppCompatActivity {
         averageRatingText = findViewById(R.id.average_rating_text);
         reviewCountText = findViewById(R.id.review_count_text);
 
-        // --- Toolbar Setup ---
-        toolbar.setNavigationOnClickListener(v -> finish());
+        // **SỬA LẠI LOGIC NÚT QUAY LẠI**
+        toolbar.setNavigationOnClickListener(v -> supportFinishAfterTransition());
 
-        // --- Get Product Data ---
         currentProduct = (Product) getIntent().getSerializableExtra("PRODUCT_DETAIL");
 
         if (currentProduct != null && currentUser != null) {
@@ -90,7 +88,6 @@ public class ProductDetailActivity extends AppCompatActivity {
             finish();
         }
 
-        // --- Click Listeners ---
         favoriteIcon.setOnClickListener(v -> toggleFavorite());
         writeReviewButton.setOnClickListener(v -> showAddReviewDialog());
         addToCartButton.setOnClickListener(v -> addToCart());
