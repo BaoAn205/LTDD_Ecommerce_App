@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -27,6 +29,7 @@ import java.util.Locale;
 public class GridAdapter extends ArrayAdapter<Product> {
 
     private final FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    private int lastPosition = -1; // Để theo dõi vị trí item cuối cùng đã có animation
 
     public GridAdapter(@NonNull Context context, @NonNull List<Product> products) {
         super(context, 0, products);
@@ -55,8 +58,6 @@ public class GridAdapter extends ArrayAdapter<Product> {
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             priceTextView.setText(formatter.format(currentProduct.getPrice()));
 
-            // **SỬA LẠI LOGIC HIỂN THỊ SỐ LƯỢNG ĐÃ BÁN**
-            // Luôn hiển thị, kể cả khi số lượng là 0
             soldCountTextView.setText("Đã bán " + currentProduct.getSoldCount());
             soldCountTextView.setVisibility(View.VISIBLE);
 
@@ -77,6 +78,14 @@ public class GridAdapter extends ArrayAdapter<Product> {
                         (Activity) getContext(), imageView, "product_image_transition");
                 getContext().startActivity(intent, options.toBundle());
             });
+        }
+
+        // **THÊM ANIMATION**
+        // Chỉ chạy animation cho các item mới xuất hiện khi cuộn
+        if (position > lastPosition) {
+            Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.fade_in_and_slide_up);
+            listItemView.startAnimation(animation);
+            lastPosition = position;
         }
 
         return listItemView;
