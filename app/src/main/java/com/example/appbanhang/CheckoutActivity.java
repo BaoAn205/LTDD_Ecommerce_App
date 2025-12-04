@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
@@ -46,11 +45,9 @@ public class CheckoutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkout);
 
-        // --- Basic Setup ---
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        // --- Intent Data Check ---
         if (currentUser == null) {
             showErrorAndFinish("Vui lòng đăng nhập để thanh toán.");
             return;
@@ -64,7 +61,6 @@ public class CheckoutActivity extends AppCompatActivity {
             return;
         }
 
-        // --- Toolbar ---
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -72,7 +68,6 @@ public class CheckoutActivity extends AppCompatActivity {
         }
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
-        // --- UI Setup ---
         setupViews();
         populateUserInfo();
         setupRecyclerView();
@@ -92,25 +87,17 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void populateUserInfo() {
         db.collection("users").document(currentUser.getUid()).collection("addresses")
-            .whereEqualTo("default", true) // Corrected field name to match Address class
-            .limit(1)
-            .get()
+            .whereEqualTo("isDefault", true).limit(1).get()
             .addOnSuccessListener(addressSnapshot -> {
                 if (!addressSnapshot.isEmpty()) {
-                    // Default address found
-                    DocumentReference defaultAddressDoc = addressSnapshot.getDocuments().get(0).getReference();
-                    updateAddressViews(defaultAddressDoc);
+                    updateAddressViews(addressSnapshot.getDocuments().get(0).getReference());
                 } else {
-                    // No default address, try to get any address
                     db.collection("users").document(currentUser.getUid()).collection("addresses")
-                        .limit(1)
-                        .get()
+                        .limit(1).get()
                         .addOnSuccessListener(anyAddressSnapshot -> {
                             if (!anyAddressSnapshot.isEmpty()) {
-                                DocumentReference anyAddressDoc = anyAddressSnapshot.getDocuments().get(0).getReference();
-                                updateAddressViews(anyAddressDoc);
+                                updateAddressViews(anyAddressSnapshot.getDocuments().get(0).getReference());
                             } else {
-                                // No addresses at all
                                 userAddress.setText("Chưa có thông tin địa chỉ");
                             }
                         });
@@ -121,7 +108,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private void updateAddressViews(DocumentReference addressRef) {
         addressRef.get().addOnSuccessListener(addressDocument -> {
             if (addressDocument.exists()) {
-                String receiverName = addressDocument.getString("receiverName"); // Corrected field name
+                String receiverName = addressDocument.getString("receiverName");
                 String street = addressDocument.getString("streetAddress");
                 String city = addressDocument.getString("city");
                 String phone = addressDocument.getString("phoneNumber");
@@ -143,14 +130,12 @@ public class CheckoutActivity extends AppCompatActivity {
     private void placeOrder(android.view.View button) {
         button.setEnabled(false);
 
-        // Create Address Map
         Map<String, String> shippingAddress = new HashMap<>();
         String[] nameAndPhone = userNameAndPhone.getText().toString().split("\\s\\|\\s");
         shippingAddress.put("fullName", nameAndPhone.length > 0 ? nameAndPhone[0].trim() : "");
         shippingAddress.put("phoneNumber", nameAndPhone.length > 1 ? nameAndPhone[1].trim() : "");
         shippingAddress.put("streetAddress", userAddress.getText().toString());
 
-        // Create Order
         Order newOrder = new Order();
         newOrder.setUserId(currentUser.getUid());
         newOrder.setItems(cartItems);
@@ -159,12 +144,26 @@ public class CheckoutActivity extends AppCompatActivity {
         newOrder.setShippingAddress(shippingAddress);
 
         db.collection("orders").add(newOrder)
-                .addOnSuccessListener(documentReference -> clearCart())
+                .addOnSuccessListener(documentReference -> {
+                    createOrderSuccessNotification(documentReference.getId());
+                    clearCart();
+                })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error placing order", e);
                     Toast.makeText(CheckoutActivity.this, "Đặt hàng thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     button.setEnabled(true);
                 });
+    }
+
+    private void createOrderSuccessNotification(String orderId) {
+        String title = "Đặt hàng thành công!";
+        String message = "Đơn hàng #" + orderId.substring(0, 5) + " của bạn đã được nhận và đang được xử lý.";
+        Notification notification = new Notification(title, message);
+
+        db.collection("users").document(currentUser.getUid()).collection("notifications")
+            .add(notification)
+            .addOnSuccessListener(aVoid -> Log.d(TAG, "Notification created successfully."))
+            .addOnFailureListener(e -> Log.w(TAG, "Failed to create notification.", e));
     }
 
     private void clearCart() {

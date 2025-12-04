@@ -17,15 +17,26 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HomeFragment extends Fragment {
 
@@ -45,6 +56,10 @@ public class HomeFragment extends Fragment {
     private Runnable searchRunnable;
     private static final long DEBOUNCE_DELAY = 500;
 
+    private RecyclerView recentlyViewedRecyclerView;
+    private ViewedProductAdapter viewedProductAdapter;
+    private List<Product> viewedProductList;
+
     private static final String TAG = "HomeFragment";
 
     @Nullable
@@ -61,7 +76,36 @@ public class HomeFragment extends Fragment {
         setupClickListeners();
         setupSearchView();
         setupGridView();
+        setupViewedProducts(); // Setup for viewed products
         fetchProductsFromFirestore();
+        loadViewedProducts(); // Load viewed products
+        
+        if (getActivity().getIntent().hasExtra("SHOW_PRODUCT_ID")) {
+            String productId = getActivity().getIntent().getStringExtra("SHOW_PRODUCT_ID");
+            showFeaturedProduct(productId);
+            getActivity().getIntent().removeExtra("SHOW_PRODUCT_ID");
+        }
+    }
+    
+    private void showFeaturedProduct(String productId) {
+        FirebaseFirestore.getInstance().collection("products").document(productId).get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if(documentSnapshot.exists()) {
+                    Product product = documentSnapshot.toObject(Product.class);
+                    if (product != null) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle("Sản phẩm bạn vừa xem");
+                        builder.setMessage(product.getName());
+                        builder.setPositiveButton("Xem chi tiết", (dialog, which) -> {
+                            Intent intent = new Intent(getActivity(), ProductDetailActivity.class);
+                            intent.putExtra("PRODUCT_DETAIL", product);
+                            startActivity(intent);
+                        });
+                        builder.setNegativeButton("Bỏ qua", null);
+                        builder.show();
+                    }
+                }
+            });
     }
 
     private void initializeViews(View view) {
@@ -74,6 +118,7 @@ public class HomeFragment extends Fragment {
         seeAllButton = view.findViewById(R.id.seeAllText);
         searchView = view.findViewById(R.id.searchView);
         gridView = view.findViewById(R.id.gridView);
+        recentlyViewedRecyclerView = view.findViewById(R.id.recentlyViewedRecyclerView);
     }
 
     private void setupClickListeners() {
@@ -108,6 +153,68 @@ public class HomeFragment extends Fragment {
         displayedProductList = new ArrayList<>();
         adapter = new GridAdapter(getContext(), displayedProductList);
         gridView.setAdapter(adapter);
+    }
+
+    private void setupViewedProducts() {
+        viewedProductList = new ArrayList<>();
+        viewedProductAdapter = new ViewedProductAdapter(getContext(), viewedProductList);
+        recentlyViewedRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        recentlyViewedRecyclerView.setAdapter(viewedProductAdapter);
+    }
+
+    private void loadViewedProducts() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            findViewById(R.id.recentlyViewedTitle).setVisibility(View.GONE);
+            findViewById(R.id.recentlyViewedRecyclerView).setVisibility(View.GONE);
+            return;
+        }
+
+        db.collection("users").document(currentUser.getUid()).collection("viewHistory")
+            .orderBy("lastViewed", Query.Direction.DESCENDING).limit(10).get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                if (queryDocumentSnapshots.isEmpty()) {
+                     findViewById(R.id.recentlyViewedTitle).setVisibility(View.GONE);
+                     findViewById(R.id.recentlyViewedRecyclerView).setVisibility(View.GONE);
+                } else {
+                     findViewById(R.id.recentlyViewedTitle).setVisibility(View.VISIBLE);
+                     findViewById(R.id.recentlyViewedRecyclerView).setVisibility(View.VISIBLE);
+                    List<String> productIds = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        productIds.add(doc.getId());
+                    }
+                    fetchViewedProductDetails(productIds);
+                }
+            });
+    }
+
+    private void fetchViewedProductDetails(List<String> productIds) {
+        if (productIds == null || productIds.isEmpty()) return;
+
+        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+        for (String id : productIds) {
+            tasks.add(db.collection("products").document(id).get());
+        }
+
+        Tasks.whenAllSuccess(tasks).addOnSuccessListener(list -> {
+            Map<String, Product> productMap = new HashMap<>();
+            for (Object object : list) {
+                DocumentSnapshot snapshot = (DocumentSnapshot) object;
+                Product product = snapshot.toObject(Product.class);
+                if (product != null) {
+                    product.setId(snapshot.getId());
+                    productMap.put(snapshot.getId(), product);
+                }
+            }
+            
+            viewedProductList.clear();
+            for (String id : productIds) {
+                if (productMap.containsKey(id)) {
+                    viewedProductList.add(productMap.get(id));
+                }
+            }
+            viewedProductAdapter.notifyDataSetChanged();
+        });
     }
 
     private void fetchProductsFromFirestore() {
@@ -196,5 +303,12 @@ public class HomeFragment extends Fragment {
         displayedProductList.clear();
         displayedProductList.addAll(filteredList);
         adapter.notifyDataSetChanged();
+    }
+    
+    private View findViewById(int id) {
+        if (getView() != null) {
+            return getView().findViewById(id);
+        }
+        return null;
     }
 }

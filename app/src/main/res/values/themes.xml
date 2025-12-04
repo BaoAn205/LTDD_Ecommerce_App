@@ -16,6 +16,14 @@
 
     <style name="Theme.AppBanHang" parent="Base.Theme.AppBanHang" />
 
+    <!-- Custom SearchView Style -->
+    <style name="AppSearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <!-- Text color -->
+        <item name="android:textColorPrimary">@color/black</item>
+        <!-- Hint text color -->
+        <item name="android:textColorHint">@color/gray</item>
+    </style>
+
     <!-- Styles for Product Detail Attributes -->
     <style name="Widget.App.AttributeItemLayout" parent="">
         <item name="android:background">@drawable/rounded_edittext_bg</item>

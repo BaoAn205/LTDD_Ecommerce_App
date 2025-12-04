@@ -1,5 +1,7 @@
 package com.example.appbanhang;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,6 +36,9 @@ import java.util.Locale;
 public class ProductDetailActivity extends AppCompatActivity {
 
     private static final String TAG = "ProductDetailActivity";
+    public static final String PREFS_NAME = "AppPrefs";
+    public static final String LAST_VIEWED_PRODUCT_ID = "last_viewed_product_id";
+
     private ImageView favoriteIcon;
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
@@ -58,7 +63,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        // --- View Initialization ---
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         ImageView productImageView = findViewById(R.id.product_detail_image);
         TextView productNameView = findViewById(R.id.product_detail_name);
@@ -74,19 +78,26 @@ public class ProductDetailActivity extends AppCompatActivity {
         averageRatingText = findViewById(R.id.average_rating_text);
         reviewCountText = findViewById(R.id.review_count_text);
 
-        // --- Toolbar Setup ---
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // --- Get Product Data ---
         currentProduct = (Product) getIntent().getSerializableExtra("PRODUCT_DETAIL");
 
-        if (currentProduct != null && currentUser != null) {
+        if (currentProduct != null) {
             populateProductDetails(productImageView, productNameView, productPriceView, productDescriptionView);
-            checkIfFavorite();
-            setupReviews();
-            loadReviews();
+            saveLastViewedProduct(currentProduct.getId());
+
+            if (currentUser != null) {
+                logViewHistory(); // Log the view for the logged-in user
+                checkIfFavorite();
+                setupReviews();
+                loadReviews();
+            } else {
+                // Hide or disable features for non-logged-in users
+                writeReviewButton.setVisibility(View.GONE);
+                favoriteIcon.setColorFilter(getResources().getColor(R.color.gray));
+            }
         } else {
-            Toast.makeText(this, "Lỗi: Không tìm thấy thông tin sản phẩm hoặc người dùng.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Lỗi: Không tìm thấy thông tin sản phẩm.", Toast.LENGTH_SHORT).show();
             finish();
         }
 
@@ -97,6 +108,23 @@ public class ProductDetailActivity extends AppCompatActivity {
         increaseButton.setOnClickListener(v -> updateQuantity(1));
         decreaseButton.setOnClickListener(v -> updateQuantity(-1));
     }
+    
+    private void logViewHistory() {
+        if (currentProduct == null || currentUser == null) return;
+        ViewHistoryItem viewHistoryItem = new ViewHistoryItem(currentProduct.getId());
+        db.collection("users").document(currentUser.getUid()).collection("viewHistory")
+            .document(currentProduct.getId()) // Use product ID as document ID to avoid duplicates and allow easy update
+            .set(viewHistoryItem)
+            .addOnSuccessListener(aVoid -> Log.d(TAG, "Product view successfully logged."))
+            .addOnFailureListener(e -> Log.w(TAG, "Error logging product view", e));
+    }
+
+    private void saveLastViewedProduct(String productId) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(LAST_VIEWED_PRODUCT_ID, productId);
+        editor.apply();
+    }
 
     private void updateQuantity(int change) {
         if (quantity + change >= 1) {
@@ -106,7 +134,11 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private void addToCart() {
-        if (currentProduct != null && currentUser != null) {
+        if (currentUser == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập để thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (currentProduct != null) {
              CartManager.getInstance().addProduct(this, currentUser.getUid(), currentProduct, quantity, new CartManager.CartCallback() {
                 @Override
                 public void onSuccess() {
@@ -120,49 +152,29 @@ public class ProductDetailActivity extends AppCompatActivity {
             });
         }
     }
-
-    private void setupReviews() {
-        reviewsRecyclerView = findViewById(R.id.reviews_recyclerview);
-        reviewsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        reviewList = new ArrayList<>();
-        reviewAdapter = new ReviewAdapter(reviewList);
-        reviewsRecyclerView.setAdapter(reviewAdapter);
-    }
-
-    private void loadReviews() {
+    
+    private void toggleFavorite() {
+        if (currentUser == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập để sử dụng chức năng này", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (currentProduct.getId() == null) return;
+        DocumentReference userRef = db.collection("users").document(currentUser.getUid());
 
-        db.collection("products").document(currentProduct.getId()).collection("reviews")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        reviewList.clear();
-                        double totalRating = 0;
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Review review = document.toObject(Review.class);
-                            reviewList.add(review);
-                            totalRating += review.getRating();
-                        }
-                        reviewAdapter.notifyDataSetChanged();
-                        
-                        if (!reviewList.isEmpty()) {
-                            double avg = totalRating / reviewList.size();
-                            averageRatingBar.setRating((float) avg);
-                            averageRatingText.setText(String.format(Locale.US, "%.1f", avg));
-                            reviewCountText.setText(String.format(Locale.US, "(%d đánh giá)", reviewList.size()));
-                        } else {
-                            averageRatingText.setText("Chưa có đánh giá");
-                            reviewCountText.setText("");
-                        }
-
-                    } else {
-                        Log.w(TAG, "Error getting reviews.", task.getException());
-                    }
-                });
+        FieldValue fieldValue = isFavorite ? FieldValue.arrayRemove(currentProduct.getId()) : FieldValue.arrayUnion(currentProduct.getId());
+        userRef.update("wishlist", fieldValue)
+             .addOnSuccessListener(aVoid -> {
+                 isFavorite = !isFavorite;
+                 updateFavoriteButtonUI();
+                 Toast.makeText(this, isFavorite ? "Đã thêm vào danh sách yêu thích" : "Đã xóa khỏi danh sách yêu thích", Toast.LENGTH_SHORT).show();
+             });
     }
-
+    
     private void showAddReviewDialog() {
+        if (currentUser == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập để viết đánh giá", Toast.LENGTH_SHORT).show();
+            return;
+        }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_add_review, null);
@@ -180,10 +192,48 @@ public class ProductDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng xếp hạng và viết bình luận", Toast.LENGTH_SHORT).show();
             }
         });
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    // --- Unchanged Methods Below ---
+    private void setupReviews() {
+        reviewsRecyclerView = findViewById(R.id.reviews_recyclerview);
+        reviewsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        reviewList = new ArrayList<>();
+        reviewAdapter = new ReviewAdapter(reviewList);
+        reviewsRecyclerView.setAdapter(reviewAdapter);
+    }
+
+    private void loadReviews() {
+        if (currentProduct.getId() == null) return;
+        db.collection("products").document(currentProduct.getId()).collection("reviews")
+                .orderBy("timestamp", Query.Direction.DESCENDING).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        reviewList.clear();
+                        double totalRating = 0;
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Review review = document.toObject(Review.class);
+                            reviewList.add(review);
+                            totalRating += review.getRating();
+                        }
+                        reviewAdapter.notifyDataSetChanged();
+                        if (!reviewList.isEmpty()) {
+                            double avg = totalRating / reviewList.size();
+                            averageRatingBar.setRating((float) avg);
+                            averageRatingText.setText(String.format(Locale.US, "%.1f", avg));
+                            reviewCountText.setText(String.format(Locale.US, "(%d đánh giá)", reviewList.size()));
+                        } else {
+                            averageRatingText.setText("Chưa có đánh giá");
+                            reviewCountText.setText("");
+                        }
+                    } else {
+                        Log.w(TAG, "Error getting reviews.", task.getException());
+                    }
+                });
     }
 
     private void submitReview(float rating, String comment) {
@@ -201,7 +251,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             .add(review)
             .addOnSuccessListener(documentReference -> {
                 Toast.makeText(this, "Đánh giá của bạn đã được gửi", Toast.LENGTH_SHORT).show();
-                loadReviews(); // Refresh the reviews list
+                loadReviews();
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Lỗi: Không thể gửi đánh giá", Toast.LENGTH_SHORT).show();
@@ -212,10 +262,8 @@ public class ProductDetailActivity extends AppCompatActivity {
     private void populateProductDetails(ImageView imageView, TextView nameView, TextView priceView, TextView descriptionView) {
         int imageId = getResources().getIdentifier(currentProduct.getImage(), "drawable", getPackageName());
         imageView.setImageResource(imageId != 0 ? imageId : R.drawable.product_placeholder_background);
-
         nameView.setText(currentProduct.getName());
         descriptionView.setText(currentProduct.getDescription());
-
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         priceView.setText(formatter.format(currentProduct.getPrice()));
     }
@@ -229,19 +277,6 @@ public class ProductDetailActivity extends AppCompatActivity {
                 updateFavoriteButtonUI();
             }
         }).addOnFailureListener(e -> Log.w(TAG, "Error checking wishlist", e));
-    }
-
-    private void toggleFavorite() {
-        if (currentProduct.getId() == null) return;
-        DocumentReference userRef = db.collection("users").document(currentUser.getUid());
-
-        FieldValue fieldValue = isFavorite ? FieldValue.arrayRemove(currentProduct.getId()) : FieldValue.arrayUnion(currentProduct.getId());
-        userRef.update("wishlist", fieldValue)
-             .addOnSuccessListener(aVoid -> {
-                 isFavorite = !isFavorite;
-                 updateFavoriteButtonUI();
-                 Toast.makeText(this, isFavorite ? "Đã thêm vào danh sách yêu thích" : "Đã xóa khỏi danh sách yêu thích", Toast.LENGTH_SHORT).show();
-             });
     }
 
     private void updateFavoriteButtonUI() {

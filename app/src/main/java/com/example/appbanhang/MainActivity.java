@@ -1,6 +1,8 @@
 package com.example.appbanhang;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            goToHomeActivity();
+            goToHomeActivity(false); // Don't check for last viewed product on auto-login
         }
     }
 
@@ -71,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AdminHomeActivity.class);
             startActivity(intent);
             finish();
-            return; // Dừng thực thi để không chạy code đăng nhập của người dùng thường
+            return; 
         }
 
         // --- REGULAR USER LOGIN ---
@@ -79,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(MainActivity.this, "Đăng nhập thành công.", Toast.LENGTH_SHORT).show();
-                        goToHomeActivity();
+                        goToHomeActivity(true); // Check for last viewed product on manual login
                     } else {
                         Toast.makeText(MainActivity.this, "Đăng nhập thất bại: " + task.getException().getMessage(),
                                 Toast.LENGTH_LONG).show();
@@ -87,8 +89,20 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void goToHomeActivity() {
+    private void goToHomeActivity(boolean checkLastViewed) {
         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+        
+        if (checkLastViewed) {
+            SharedPreferences prefs = getSharedPreferences(ProductDetailActivity.PREFS_NAME, Context.MODE_PRIVATE);
+            String lastViewedProductId = prefs.getString(ProductDetailActivity.LAST_VIEWED_PRODUCT_ID, null);
+
+            if (lastViewedProductId != null) {
+                intent.putExtra("SHOW_PRODUCT_ID", lastViewedProductId);
+                // Clear the preference so it's only shown once
+                prefs.edit().remove(ProductDetailActivity.LAST_VIEWED_PRODUCT_ID).apply();
+            }
+        }
+
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
