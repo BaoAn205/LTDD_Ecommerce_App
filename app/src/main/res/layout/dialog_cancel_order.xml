@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lý do hủy đơn hàng"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/cancellation_reason_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/reason_change_mind"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tôi không muốn mua nữa" />
+
+        <RadioButton
+            android:id="@+id/reason_found_better_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tôi tìm thấy nơi khác giá tốt hơn" />
+
+        <RadioButton
+            android:id="@+id/reason_change_product"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tôi muốn thay đổi sản phẩm" />
+
+        <RadioButton
+            android:id="@+id/reason_other"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lý do khác" />
+
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/other_reason_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Vui lòng cho biết lý do khác..."
+        android:visibility="gone" />
+
+</LinearLayout>

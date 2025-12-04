@@ -78,8 +78,7 @@ public class MyOrdersActivity extends AppCompatActivity {
                         orderList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Order order = document.toObject(Order.class);
-                            // You might want to add document ID to your order object if needed later
-                            // order.setId(document.getId());
+                            order.setId(document.getId()); // Set the document ID on the order object
                             orderList.add(order);
                         }
 

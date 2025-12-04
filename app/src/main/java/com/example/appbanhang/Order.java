@@ -15,6 +15,7 @@ public class Order {
     private List<CartItem> items;
     private Double totalPrice;
     private String status;
+    private String cancellationReason; // New field for cancellation reason
     private Map<String, String> shippingAddress;
     @ServerTimestamp
     private Date orderDate;
@@ -30,6 +31,15 @@ public class Order {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    // Getter and Setter for the new field
+    public String getCancellationReason() {
+        return cancellationReason;
+    }
+
+    public void setCancellationReason(String cancellationReason) {
+        this.cancellationReason = cancellationReason;
     }
 
     // <editor-fold desc="Other Getters and Setters">

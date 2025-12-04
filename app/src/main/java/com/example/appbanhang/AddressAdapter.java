@@ -1,5 +1,8 @@
 package com.example.appbanhang;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,16 +18,17 @@ import java.util.List;
 
 public class AddressAdapter extends RecyclerView.Adapter<AddressAdapter.AddressViewHolder> {
 
-    public interface OnAddressDeleteListener {
+    public interface OnAddressInteractionListener {
         void onDeleteAddress(Address address);
+        void onSetDefaultAddress(Address address);
     }
 
     private List<Address> addressList;
-    private OnAddressDeleteListener deleteListener;
+    private OnAddressInteractionListener listener;
 
-    public AddressAdapter(List<Address> addressList, OnAddressDeleteListener deleteListener) {
+    public AddressAdapter(List<Address> addressList, OnAddressInteractionListener listener) {
         this.addressList = addressList;
-        this.deleteListener = deleteListener;
+        this.listener = listener;
     }
 
     @NonNull
@@ -37,7 +41,7 @@ public class AddressAdapter extends RecyclerView.Adapter<AddressAdapter.AddressV
     @Override
     public void onBindViewHolder(@NonNull AddressViewHolder holder, int position) {
         Address address = addressList.get(position);
-        holder.bind(address, deleteListener);
+        holder.bind(address, listener);
     }
 
     @Override
@@ -64,23 +68,43 @@ public class AddressAdapter extends RecyclerView.Adapter<AddressAdapter.AddressV
             deleteAddressButton = itemView.findViewById(R.id.deleteAddressButton);
         }
 
-        public void bind(final Address address, final OnAddressDeleteListener listener) {
+        public void bind(final Address address, final OnAddressInteractionListener listener) {
             String nameAndPhone = address.getReceiverName() + " | " + address.getPhoneNumber();
             receiverNameAndPhone.setText(nameAndPhone);
             streetAddress.setText(address.getStreetAddress());
             cityAddress.setText(address.getCity());
 
-            if (address.isDefault()) {
-                defaultAddressChip.setVisibility(View.VISIBLE);
-            } else {
-                defaultAddressChip.setVisibility(View.GONE);
-            }
+            defaultAddressChip.setVisibility(address.isDefault() ? View.VISIBLE : View.GONE);
 
             deleteAddressButton.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onDeleteAddress(address);
                 }
             });
+
+            itemView.setOnLongClickListener(v -> {
+                showOptionsDialog(itemView.getContext(), address, listener);
+                return true;
+            });
+        }
+
+        private void showOptionsDialog(Context context, Address address, OnAddressInteractionListener listener) {
+            final CharSequence[] options = {"Đặt làm địa chỉ mặc định", "Chỉnh sửa địa chỉ"};
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Tùy chọn cho địa chỉ");
+            builder.setItems(options, (dialog, item) -> {
+                if (options[item].equals("Đặt làm địa chỉ mặc định")) {
+                    if (listener != null) {
+                        listener.onSetDefaultAddress(address);
+                    }
+                } else if (options[item].equals("Chỉnh sửa địa chỉ")) {
+                    Intent intent = new Intent(context, AddressFormActivity.class);
+                    intent.putExtra("EDIT_ADDRESS_ID", address.getId());
+                    context.startActivity(intent);
+                }
+            });
+            builder.show();
         }
     }
 }

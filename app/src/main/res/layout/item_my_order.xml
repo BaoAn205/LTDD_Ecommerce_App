@@ -53,9 +53,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/order_total_textview"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:text="1. Tên sản phẩm A
-2. Tên sản phẩm B" />
+            app:layout_constraintBottom_toTopOf="@+id/cancel_order_button" />
 
         <TextView
             android:id="@+id/order_status_textview"
@@ -71,6 +69,19 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Đang xử lý" />
+
+        <Button
+            android:id="@+id/cancel_order_button"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hủy đơn hàng"
+            android:textColor="@color/red"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/order_items_textview"
+            android:layout_marginTop="16dp"
+            tools:visibility="visible"/>
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
