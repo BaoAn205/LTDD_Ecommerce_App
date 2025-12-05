@@ -26,6 +26,7 @@ public class AdminOrderDetailActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private DocumentReference orderRef;
     private String orderId;
+    private Order currentOrder; // To hold the current order details
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +35,6 @@ public class AdminOrderDetailActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // Get order ID from intent
         orderId = getIntent().getStringExtra("ORDER_ID");
         if (orderId == null || orderId.isEmpty()) {
             Toast.makeText(this, "Không tìm thấy ID đơn hàng", Toast.LENGTH_SHORT).show();
@@ -68,10 +68,10 @@ public class AdminOrderDetailActivity extends AppCompatActivity {
     private void loadOrderDetails() {
         orderRef.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
-                Order order = documentSnapshot.toObject(Order.class);
-                if (order != null) {
-                    order.setId(documentSnapshot.getId());
-                    populateUi(order);
+                currentOrder = documentSnapshot.toObject(Order.class);
+                if (currentOrder != null) {
+                    currentOrder.setId(documentSnapshot.getId());
+                    populateUi(currentOrder);
                 }
             } else {
                 Toast.makeText(this, "Đơn hàng không tồn tại.", Toast.LENGTH_SHORT).show();
@@ -92,17 +92,14 @@ public class AdminOrderDetailActivity extends AppCompatActivity {
         detailOrderTotal.setText("Tổng tiền: " + formatter.format(order.getTotalPrice()));
         detailOrderStatus.setText("Trạng thái: " + order.getStatus());
 
-        // Format shipping address
         Map<String, String> addressMap = order.getShippingAddress();
         if (addressMap != null) {
-            // SỬA LỖI: Dùng đúng key là "fullName" thay vì "receiverName"
             String addressString = "Người nhận: " + addressMap.get("fullName") + "\n"
                     + addressMap.get("phoneNumber") + "\n"
-                    + addressMap.get("streetAddress") + ", " + addressMap.get("city");
+                    + addressMap.get("streetAddress");
             detailShippingAddress.setText(addressString);
         }
 
-        // Format items list
         StringBuilder itemsBuilder = new StringBuilder();
         if (order.getItems() != null) {
             for (CartItem item : order.getItems()) {
@@ -122,11 +119,44 @@ public class AdminOrderDetailActivity extends AppCompatActivity {
         orderRef.update("status", newStatus)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Cập nhật trạng thái thành công", Toast.LENGTH_SHORT).show();
-                    detailOrderStatus.setText("Trạng thái: " + newStatus); // Update UI immediately
+                    detailOrderStatus.setText("Trạng thái: " + newStatus);
+                    createStatusUpdateNotification(newStatus);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Lỗi khi cập nhật trạng thái", Toast.LENGTH_SHORT).show();
                     Log.e(TAG, "Error updating status", e);
                 });
+    }
+
+    private void createStatusUpdateNotification(String newStatus) {
+        if (currentOrder == null || currentOrder.getUserId() == null || currentOrder.getUserId().isEmpty()) {
+            Log.w(TAG, "User ID is null or empty, cannot create notification.");
+            return;
+        }
+
+        String title;
+        String message;
+        String shortOrderId = currentOrder.getId().substring(0, 5).toUpperCase();
+
+        switch (newStatus) {
+            case "Đã xử lý":
+                title = "Đơn hàng đã được xác nhận";
+                message = "Đơn hàng #" + shortOrderId + " của bạn đã được người bán xác nhận và đang được chuẩn bị.";
+                break;
+            case "Đã hủy bởi Admin":
+                title = "Đơn hàng đã bị hủy";
+                message = "Rất tiếc, đơn hàng #" + shortOrderId + " của bạn đã bị hủy. Vui lòng liên hệ cửa hàng để biết thêm chi tiết.";
+                break;
+            default:
+                // Do not send notifications for other statuses for now.
+                return;
+        }
+
+        Notification notification = new Notification(title, message);
+
+        db.collection("users").document(currentOrder.getUserId()).collection("notifications")
+            .add(notification)
+            .addOnSuccessListener(aVoid -> Log.d(TAG, "Status update notification created for user: " + currentOrder.getUserId()))
+            .addOnFailureListener(e -> Log.w(TAG, "Failed to create status update notification.", e));
     }
 }
