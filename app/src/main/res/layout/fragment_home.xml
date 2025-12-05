@@ -167,7 +167,7 @@
             android:id="@+id/recentlyViewedTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sản phẩm đã xem"
+            android:text="Recommended for you"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"

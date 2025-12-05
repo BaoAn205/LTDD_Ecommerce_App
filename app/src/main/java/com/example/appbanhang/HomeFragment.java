@@ -59,6 +59,7 @@ public class HomeFragment extends Fragment {
     private RecyclerView recentlyViewedRecyclerView;
     private ViewedProductAdapter viewedProductAdapter;
     private List<Product> viewedProductList;
+    private TextView recentlyViewedTitle;
 
     private static final String TAG = "HomeFragment";
 
@@ -71,41 +72,19 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        db = FirebaseFirestore.getInstance();
         initializeViews(view);
         setupClickListeners();
         setupSearchView();
         setupGridView();
-        setupViewedProducts(); // Setup for viewed products
+        setupViewedProducts();
         fetchProductsFromFirestore();
-        loadViewedProducts(); // Load viewed products
-        
-        if (getActivity().getIntent().hasExtra("SHOW_PRODUCT_ID")) {
-            String productId = getActivity().getIntent().getStringExtra("SHOW_PRODUCT_ID");
-            showFeaturedProduct(productId);
-            getActivity().getIntent().removeExtra("SHOW_PRODUCT_ID");
-        }
     }
-    
-    private void showFeaturedProduct(String productId) {
-        FirebaseFirestore.getInstance().collection("products").document(productId).get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if(documentSnapshot.exists()) {
-                    Product product = documentSnapshot.toObject(Product.class);
-                    if (product != null) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                        builder.setTitle("Sản phẩm bạn vừa xem");
-                        builder.setMessage(product.getName());
-                        builder.setPositiveButton("Xem chi tiết", (dialog, which) -> {
-                            Intent intent = new Intent(getActivity(), ProductDetailActivity.class);
-                            intent.putExtra("PRODUCT_DETAIL", product);
-                            startActivity(intent);
-                        });
-                        builder.setNegativeButton("Bỏ qua", null);
-                        builder.show();
-                    }
-                }
-            });
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadViewedProducts();
     }
 
     private void initializeViews(View view) {
@@ -119,11 +98,16 @@ public class HomeFragment extends Fragment {
         searchView = view.findViewById(R.id.searchView);
         gridView = view.findViewById(R.id.gridView);
         recentlyViewedRecyclerView = view.findViewById(R.id.recentlyViewedRecyclerView);
+        recentlyViewedTitle = view.findViewById(R.id.recentlyViewedTitle);
     }
 
     private void setupClickListeners() {
-        notificationButton.setOnClickListener(v -> startActivity(new Intent(getActivity(), NotiActivity.class)));
-        cartButton.setOnClickListener(v -> startActivity(new Intent(getActivity(), CartActivity.class)));
+        notificationButton.setOnClickListener(v -> {
+            if (getActivity() != null) startActivity(new Intent(getActivity(), NotiActivity.class));
+        });
+        cartButton.setOnClickListener(v -> {
+            if (getActivity() != null) startActivity(new Intent(getActivity(), CartActivity.class));
+        });
 
         weightsButton.setOnClickListener(v -> onCategorySelected("Weights"));
         cardioButton.setOnClickListener(v -> onCategorySelected("Cardio"));
@@ -136,6 +120,7 @@ public class HomeFragment extends Fragment {
         });
 
          gridView.setOnItemClickListener((parent, view, position, id) -> {
+            if (getActivity() == null) return;
             Product selectedProduct = displayedProductList.get(position);
             Intent intent = new Intent(getActivity(), ProductDetailActivity.class);
             intent.putExtra("PRODUCT_DETAIL", selectedProduct);
@@ -148,7 +133,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupGridView(){
-         db = FirebaseFirestore.getInstance();
+        if (getContext() == null) return;
         allProductList = new ArrayList<>();
         displayedProductList = new ArrayList<>();
         adapter = new GridAdapter(getContext(), displayedProductList);
@@ -156,6 +141,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupViewedProducts() {
+        if (getContext() == null) return;
         viewedProductList = new ArrayList<>();
         viewedProductAdapter = new ViewedProductAdapter(getContext(), viewedProductList);
         recentlyViewedRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -164,9 +150,9 @@ public class HomeFragment extends Fragment {
 
     private void loadViewedProducts() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) {
-            findViewById(R.id.recentlyViewedTitle).setVisibility(View.GONE);
-            findViewById(R.id.recentlyViewedRecyclerView).setVisibility(View.GONE);
+        if (currentUser == null || recentlyViewedTitle == null || recentlyViewedRecyclerView == null) {
+            if(recentlyViewedTitle != null) recentlyViewedTitle.setVisibility(View.GONE);
+            if(recentlyViewedRecyclerView != null) recentlyViewedRecyclerView.setVisibility(View.GONE);
             return;
         }
 
@@ -174,14 +160,14 @@ public class HomeFragment extends Fragment {
             .orderBy("lastViewed", Query.Direction.DESCENDING).limit(10).get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 if (queryDocumentSnapshots.isEmpty()) {
-                     findViewById(R.id.recentlyViewedTitle).setVisibility(View.GONE);
-                     findViewById(R.id.recentlyViewedRecyclerView).setVisibility(View.GONE);
+                     recentlyViewedTitle.setVisibility(View.GONE);
+                     recentlyViewedRecyclerView.setVisibility(View.GONE);
                 } else {
-                     findViewById(R.id.recentlyViewedTitle).setVisibility(View.VISIBLE);
-                     findViewById(R.id.recentlyViewedRecyclerView).setVisibility(View.VISIBLE);
+                     recentlyViewedTitle.setVisibility(View.VISIBLE);
+                     recentlyViewedRecyclerView.setVisibility(View.VISIBLE);
                     List<String> productIds = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        productIds.add(doc.getId());
+                        productIds.add(doc.getString("productId"));
                     }
                     fetchViewedProductDetails(productIds);
                 }
@@ -193,17 +179,21 @@ public class HomeFragment extends Fragment {
 
         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
         for (String id : productIds) {
-            tasks.add(db.collection("products").document(id).get());
+            if (id != null && !id.isEmpty()) {
+                tasks.add(db.collection("products").document(id).get());
+            }
         }
 
         Tasks.whenAllSuccess(tasks).addOnSuccessListener(list -> {
             Map<String, Product> productMap = new HashMap<>();
             for (Object object : list) {
                 DocumentSnapshot snapshot = (DocumentSnapshot) object;
-                Product product = snapshot.toObject(Product.class);
-                if (product != null) {
-                    product.setId(snapshot.getId());
-                    productMap.put(snapshot.getId(), product);
+                if(snapshot.exists()) {
+                    Product product = snapshot.toObject(Product.class);
+                    if (product != null) {
+                        product.setId(snapshot.getId());
+                        productMap.put(snapshot.getId(), product);
+                    }
                 }
             }
             
@@ -290,7 +280,7 @@ public class HomeFragment extends Fragment {
 
         for (Product product : allProductList) {
             boolean categoryMatch = (selectedCategory == null) || 
-                                    (product.getCategory() != null && selectedCategory.equalsIgnoreCase(product.getCategory()));
+                                    (product.getCategory() != null && product.getCategory().equalsIgnoreCase(selectedCategory));
 
             boolean searchMatch = query.isEmpty() || 
                                   (product.getName() != null && product.getName().toLowerCase().contains(query));
@@ -302,13 +292,8 @@ public class HomeFragment extends Fragment {
 
         displayedProductList.clear();
         displayedProductList.addAll(filteredList);
-        adapter.notifyDataSetChanged();
-    }
-    
-    private View findViewById(int id) {
-        if (getView() != null) {
-            return getView().findViewById(id);
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
         }
-        return null;
     }
 }
