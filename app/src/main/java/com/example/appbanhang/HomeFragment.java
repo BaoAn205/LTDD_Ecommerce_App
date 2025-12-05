@@ -1,5 +1,6 @@
 package com.example.appbanhang;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -10,19 +11,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Interpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Scroller;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -33,12 +36,16 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements FilterBottomSheetFragment.FilterListener {
 
     private ExpandableHeightGridView gridView;
     private GridAdapter adapter;
@@ -50,7 +57,7 @@ public class HomeFragment extends Fragment {
     private Button weightsButton, cardioButton, apparelButton, yogaButton;
     private String selectedCategory = null;
     private TextView seeAllButton;
-    private ImageButton notificationButton, cartButton;
+    private ImageButton notificationButton, cartButton, filterButton;
 
     private Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
@@ -60,6 +67,13 @@ public class HomeFragment extends Fragment {
     private ViewedProductAdapter viewedProductAdapter;
     private List<Product> viewedProductList;
     private TextView recentlyViewedTitle;
+    private FilterBottomSheetFragment.SortOption currentSortOption = FilterBottomSheetFragment.SortOption.DEFAULT;
+
+    private ViewPager2 bannerViewPager;
+    private BannerAdapter bannerAdapter;
+    private List<Integer> bannerImages;
+    private Handler bannerHandler = new Handler(Looper.getMainLooper());
+    private Runnable bannerRunnable;
 
     private static final String TAG = "HomeFragment";
 
@@ -74,6 +88,7 @@ public class HomeFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         db = FirebaseFirestore.getInstance();
         initializeViews(view);
+        setupBanner();
         setupClickListeners();
         setupSearchView();
         setupGridView();
@@ -85,6 +100,16 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadViewedProducts();
+        if (!allProductList.isEmpty()) {
+            updateSoldCounts();
+        }
+        startBannerAutoScroll();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopBannerAutoScroll();
     }
 
     private void initializeViews(View view) {
@@ -99,6 +124,48 @@ public class HomeFragment extends Fragment {
         gridView = view.findViewById(R.id.gridView);
         recentlyViewedRecyclerView = view.findViewById(R.id.recentlyViewedRecyclerView);
         recentlyViewedTitle = view.findViewById(R.id.recentlyViewedTitle);
+        filterButton = view.findViewById(R.id.filterButton);
+        bannerViewPager = view.findViewById(R.id.bannerViewPager);
+    }
+
+    private void setupBanner() {
+        bannerImages = new ArrayList<>(Arrays.asList(R.drawable.banner, R.drawable.banner2, R.drawable.banner3));
+        bannerAdapter = new BannerAdapter(bannerImages);
+        bannerViewPager.setAdapter(bannerAdapter);
+
+        try {
+            Field scrollerField = ViewPager2.class.getDeclaredField("mScroller");
+            scrollerField.setAccessible(true);
+            FixedSpeedScroller scroller = new FixedSpeedScroller(bannerViewPager.getContext(), new Interpolator() {
+                public float getInterpolation(float t) {
+                    return t;
+                }
+            });
+            scroller.setFixedDuration(2000); // Slower scroll duration
+            scrollerField.set(bannerViewPager, scroller);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, "Could not set scroller", e);
+        }
+
+        bannerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                int currentItem = bannerViewPager.getCurrentItem();
+                int totalItems = bannerAdapter.getItemCount();
+                if (totalItems > 0) {
+                    bannerViewPager.setCurrentItem((currentItem + 1) % totalItems);
+                }
+                bannerHandler.postDelayed(this, 5000); // 5 seconds delay
+            }
+        };
+    }
+
+    private void startBannerAutoScroll() {
+        bannerHandler.postDelayed(bannerRunnable, 5000);
+    }
+
+    private void stopBannerAutoScroll() {
+        bannerHandler.removeCallbacks(bannerRunnable);
     }
 
     private void setupClickListeners() {
@@ -119,7 +186,12 @@ public class HomeFragment extends Fragment {
             applyFilters();
         });
 
-         gridView.setOnItemClickListener((parent, view, position, id) -> {
+        filterButton.setOnClickListener(v -> {
+            FilterBottomSheetFragment bottomSheet = new FilterBottomSheetFragment();
+            bottomSheet.show(getChildFragmentManager(), FilterBottomSheetFragment.TAG);
+        });
+
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
             if (getActivity() == null) return;
             Product selectedProduct = displayedProductList.get(position);
             Intent intent = new Intent(getActivity(), ProductDetailActivity.class);
@@ -196,7 +268,7 @@ public class HomeFragment extends Fragment {
                     }
                 }
             }
-            
+
             viewedProductList.clear();
             for (String id : productIds) {
                 if (productMap.containsKey(id)) {
@@ -218,12 +290,60 @@ public class HomeFragment extends Fragment {
                             product.setId(document.getId());
                             allProductList.add(product);
                         }
-                        applyFilters(); // Initial filter apply
+                        applyFilters();
+                        updateSoldCounts();
                     } else {
                         Log.w(TAG, "Error getting documents.", task.getException());
                     }
                 });
     }
+
+    private void updateSoldCounts() {
+        Log.d(TAG, "Starting to update sold counts...");
+        db.collection("orders").whereEqualTo("status", "Đã xử lý").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                Log.d(TAG, "Successfully fetched orders. Found " + task.getResult().size() + " orders with status 'Đã xử lý'.");
+                Map<String, Integer> soldCounts = new HashMap<>();
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Order order = document.toObject(Order.class);
+                    Log.d(TAG, "Processing Order ID: " + document.getId() + ", Status: " + order.getStatus());
+
+                    if (order.getItems() != null && !order.getItems().isEmpty()) {
+                        Log.d(TAG, "Order " + document.getId() + " has " + order.getItems().size() + " items.");
+                        for (CartItem item : order.getItems()) {
+                            String productId = item.getProductId();
+                            int quantity = item.getQuantity();
+                            if (productId != null) {
+                                soldCounts.put(productId, soldCounts.getOrDefault(productId, 0) + quantity);
+                                Log.d(TAG, "  - ProductID: " + productId + ", Quantity: " + quantity);
+                            } else {
+                                Log.w(TAG, "  - Found an item with null productId in order " + document.getId());
+                            }
+                        }
+                    } else {
+                        Log.w(TAG, "Order " + document.getId() + " has no items or items list is null.");
+                    }
+                }
+
+                Log.d(TAG, "Final sold counts map: " + soldCounts.toString());
+
+                for (Product product : allProductList) {
+                    product.setSoldCount(soldCounts.getOrDefault(product.getId(), 0));
+                }
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Log.d(TAG, "Updating adapter with new sold counts.");
+                        applyFilters();
+                    });
+                }
+
+            } else {
+                Log.e(TAG, "Error getting orders for sold count", task.getException());
+            }
+        });
+    }
+
 
     private void setupSearchView() {
         searchRunnable = this::applyFilters;
@@ -289,6 +409,23 @@ public class HomeFragment extends Fragment {
                 filteredList.add(product);
             }
         }
+        // Sorting logic based on the selected sort option
+        switch (currentSortOption) {
+            case PRICE_ASC:
+                Collections.sort(filteredList, Comparator.comparingDouble(Product::getPrice));
+                break;
+            case PRICE_DESC:
+                Collections.sort(filteredList, (p1, p2) -> Double.compare(p2.getPrice(), p1.getPrice()));
+                break;
+            case BEST_SELLING:
+                Collections.sort(filteredList, (p1, p2) -> Integer.compare(p2.getSoldCount(), p1.getSoldCount()));
+                break;
+            case DEFAULT:
+            default:
+                // No sorting or default sorting (e.g., by name)
+                Collections.sort(filteredList, Comparator.comparing(Product::getName));
+                break;
+        }
 
         displayedProductList.clear();
         displayedProductList.addAll(filteredList);
@@ -296,4 +433,39 @@ public class HomeFragment extends Fragment {
             adapter.notifyDataSetChanged();
         }
     }
+
+    @Override
+    public void onFilterSelected(FilterBottomSheetFragment.SortOption sortOption) {
+        currentSortOption = sortOption;
+        applyFilters();
+    }
+    public class FixedSpeedScroller extends Scroller {
+
+        private int mDuration = 1000; // Default duration
+
+        public FixedSpeedScroller(Context context) {
+            super(context);
+        }
+
+        public FixedSpeedScroller(Context context, Interpolator interpolator) {
+            super(context, interpolator);
+        }
+
+        @Override
+        public void startScroll(int startX, int startY, int dx, int dy, int duration) {
+            // Ignore received duration, use fixed one
+            super.startScroll(startX, startY, dx, dy, mDuration);
+        }
+
+        @Override
+        public void startScroll(int startX, int startY, int dx, int dy) {
+            // Ignore received duration, use fixed one
+            super.startScroll(startX, startY, dx, dy, mDuration);
+        }
+
+        public void setFixedDuration(int duration) {
+            mDuration = duration;
+        }
+    }
+
 }
