@@ -1,5 +1,6 @@
 package com.example.appbanhang;
 
+import android.content.Intent; // **THÊM IMPORT**
 import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -36,9 +37,9 @@ public class SettingsActivity extends AppCompatActivity {
             Toast.makeText(SettingsActivity.this, "Mở màn hình Quyền riêng tư", Toast.LENGTH_SHORT).show();
         });
 
-        // Help & Support Click Listener
+        // **SỬA LẠI SỰ KIỆN CLICK CHO HELP CENTER**
         itemHelpSupport.setOnClickListener(v -> {
-            Toast.makeText(SettingsActivity.this, "Mở màn hình Trợ giúp & Hỗ trợ", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(SettingsActivity.this, HelpActivity.class));
         });
 
         // Notification Switch Listener

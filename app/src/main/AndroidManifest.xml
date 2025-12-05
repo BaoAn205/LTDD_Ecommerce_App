@@ -26,7 +26,7 @@
         <activity android:name=".RegisterActivity" />
         <activity android:name=".ProductDetailActivity" />
         <activity android:name=".NotiActivity" />
-        <activity android:name=".HelpActivity" />
+        <activity android:name=".HelpActivity" /> <!-- KHAI BÁO ĐÃ THÊM VÀO -->
         <activity android:name=".WishlistActivity" />
         <activity android:name=".ProfileActivity" />
         <activity android:name=".EditProfileActivity" />
@@ -44,7 +44,7 @@
         <activity android:name=".AdminUserManagementActivity" />
         <activity android:name=".AdminManageOrdersActivity" />
         <activity android:name=".AdminOrderDetailActivity" />
-        <activity android:name=".RevenueManagementActivity" /> <!-- NEW -->
+        <activity android:name=".RevenueManagementActivity" />
 
     </application>
 
