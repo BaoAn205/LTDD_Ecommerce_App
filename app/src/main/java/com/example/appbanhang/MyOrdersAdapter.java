@@ -2,6 +2,7 @@ package com.example.appbanhang;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.NumberFormat;
@@ -26,6 +29,7 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.OrderV
 
     private final List<Order> orderList;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private static final String TAG = "MyOrdersAdapter";
 
     public MyOrdersAdapter(List<Order> orderList) {
         this.orderList = orderList;
@@ -127,14 +131,14 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.OrderV
 
                        if (selectedId == -1) {
                            Toast.makeText(context, "Vui lòng chọn một lý do", Toast.LENGTH_SHORT).show();
-                           return; // Don't proceed
+                           return;
                        }
 
                        if (selectedId == R.id.reason_other) {
                            reason = otherReasonInput.getText().toString().trim();
                            if (reason.isEmpty()) {
                                Toast.makeText(context, "Vui lòng nhập lý do khác", Toast.LENGTH_SHORT).show();
-                               return; // Don't proceed
+                               return;
                            }
                        } else {
                            RadioButton selectedRadioButton = dialogView.findViewById(selectedId);
@@ -155,9 +159,24 @@ public class MyOrdersAdapter extends RecyclerView.Adapter<MyOrdersAdapter.OrderV
                     Toast.makeText(context, "Đã hủy đơn hàng", Toast.LENGTH_SHORT).show();
                     order.setStatus("Đã hủy bởi user");
                     order.setCancellationReason(reason);
+                    createCancellationNotification(order);
                     notifyItemChanged(getAdapterPosition());
                 })
                 .addOnFailureListener(e -> Toast.makeText(context, "Lỗi khi hủy đơn hàng", Toast.LENGTH_SHORT).show());
+        }
+
+        private void createCancellationNotification(Order order) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser == null) return;
+
+            String title = "Đơn hàng đã được hủy";
+            String message = "Bạn đã hủy đơn hàng #" + order.getId().substring(0, 5).toUpperCase() + ".";
+            Notification notification = new Notification(title, message);
+
+            db.collection("users").document(currentUser.getUid()).collection("notifications")
+                .add(notification)
+                .addOnSuccessListener(documentReference -> Log.d(TAG, "Cancellation notification created."))
+                .addOnFailureListener(e -> Log.w(TAG, "Error creating cancellation notification", e));
         }
     }
 }

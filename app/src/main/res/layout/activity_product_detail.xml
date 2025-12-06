@@ -268,6 +268,38 @@
                     android:text="Viết đánh giá của bạn" />
 
             </LinearLayout>
+
+            <!-- Related Products Section -->
+            <LinearLayout
+                android:id="@+id/related_products_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="#F4F6F8"
+                android:orientation="vertical"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="Sản phẩm liên quan"
+                    android:textColor="#1E2022"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/related_products_recyclerview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp" />
+            </LinearLayout>
+            
         </LinearLayout>
     </ScrollView>
 

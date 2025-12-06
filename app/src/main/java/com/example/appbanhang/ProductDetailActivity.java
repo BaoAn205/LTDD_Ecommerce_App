@@ -1,6 +1,7 @@
 package com.example.appbanhang;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -49,6 +50,10 @@ public class ProductDetailActivity extends AppCompatActivity {
     private ReviewAdapter reviewAdapter;
     private List<Review> reviewList;
 
+    private RecyclerView relatedProductsRecyclerView;
+    private RelatedProductAdapter relatedProductAdapter;
+    private List<Product> relatedProductList;
+
     private TextView quantityText;
     private int quantity = 1;
 
@@ -85,14 +90,15 @@ public class ProductDetailActivity extends AppCompatActivity {
         if (currentProduct != null) {
             populateProductDetails(productImageView, productNameView, productPriceView, productDescriptionView);
             saveLastViewedProduct(currentProduct.getId());
+            setupRelatedProducts();
+            loadRelatedProducts();
 
             if (currentUser != null) {
-                logViewHistory(); // Log the view for the logged-in user
+                logViewHistory();
                 checkIfFavorite();
                 setupReviews();
                 loadReviews();
             } else {
-                // Hide or disable features for non-logged-in users
                 writeReviewButton.setVisibility(View.GONE);
                 favoriteIcon.setColorFilter(getResources().getColor(R.color.gray));
             }
@@ -101,22 +107,11 @@ public class ProductDetailActivity extends AppCompatActivity {
             finish();
         }
 
-        // --- Click Listeners ---
         favoriteIcon.setOnClickListener(v -> toggleFavorite());
         writeReviewButton.setOnClickListener(v -> showAddReviewDialog());
         addToCartButton.setOnClickListener(v -> addToCart());
         increaseButton.setOnClickListener(v -> updateQuantity(1));
         decreaseButton.setOnClickListener(v -> updateQuantity(-1));
-    }
-    
-    private void logViewHistory() {
-        if (currentProduct == null || currentUser == null) return;
-        ViewHistoryItem viewHistoryItem = new ViewHistoryItem(currentProduct.getId());
-        db.collection("users").document(currentUser.getUid()).collection("viewHistory")
-            .document(currentProduct.getId()) // Use product ID as document ID to avoid duplicates and allow easy update
-            .set(viewHistoryItem)
-            .addOnSuccessListener(aVoid -> Log.d(TAG, "Product view successfully logged."))
-            .addOnFailureListener(e -> Log.w(TAG, "Error logging product view", e));
     }
 
     private void saveLastViewedProduct(String productId) {
@@ -124,6 +119,16 @@ public class ProductDetailActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(LAST_VIEWED_PRODUCT_ID, productId);
         editor.apply();
+    }
+    
+    private void logViewHistory() {
+        if (currentProduct == null || currentUser == null) return;
+        ViewHistoryItem viewHistoryItem = new ViewHistoryItem(currentProduct.getId());
+        db.collection("users").document(currentUser.getUid()).collection("viewHistory")
+            .document(currentProduct.getId())
+            .set(viewHistoryItem)
+            .addOnSuccessListener(aVoid -> Log.d(TAG, "Product view successfully logged."))
+            .addOnFailureListener(e -> Log.w(TAG, "Error logging product view", e));
     }
 
     private void updateQuantity(int change) {
@@ -192,13 +197,12 @@ public class ProductDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng xếp hạng và viết bình luận", Toast.LENGTH_SHORT).show();
             }
         });
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
         dialog.show();
     }
 
-    // --- Unchanged Methods Below ---
     private void setupReviews() {
         reviewsRecyclerView = findViewById(R.id.reviews_recyclerview);
         reviewsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -234,6 +238,46 @@ public class ProductDetailActivity extends AppCompatActivity {
                         Log.w(TAG, "Error getting reviews.", task.getException());
                     }
                 });
+    }
+    
+    private void setupRelatedProducts() {
+        relatedProductsRecyclerView = findViewById(R.id.related_products_recyclerview);
+        relatedProductList = new ArrayList<>();
+        relatedProductAdapter = new RelatedProductAdapter(this, relatedProductList);
+        relatedProductsRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        relatedProductsRecyclerView.setAdapter(relatedProductAdapter);
+    }
+
+    private void loadRelatedProducts() {
+        if (currentProduct.getCategory() == null || currentProduct.getCategory().isEmpty()) {
+            findViewById(R.id.related_products_section).setVisibility(View.GONE);
+            return;
+        }
+
+        db.collection("products")
+            .whereEqualTo("category", currentProduct.getCategory())
+            .limit(10) // Limit to 10 related products
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                relatedProductList.clear();
+                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                    Product product = document.toObject(Product.class);
+                    product.setId(document.getId());
+                    // Exclude the current product from the list
+                    if (!product.getId().equals(currentProduct.getId())) {
+                        relatedProductList.add(product);
+                    }
+                }
+                relatedProductAdapter.notifyDataSetChanged();
+
+                if (relatedProductList.isEmpty()) {
+                    findViewById(R.id.related_products_section).setVisibility(View.GONE);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.w(TAG, "Error loading related products", e);
+                findViewById(R.id.related_products_section).setVisibility(View.GONE);
+            });
     }
 
     private void submitReview(float rating, String comment) {

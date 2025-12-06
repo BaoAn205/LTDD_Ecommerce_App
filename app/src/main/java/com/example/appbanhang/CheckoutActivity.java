@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
@@ -69,8 +69,13 @@ public class CheckoutActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
         setupViews();
-        populateUserInfo();
         setupRecyclerView();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        populateUserInfo();
     }
 
     private void setupViews() {
@@ -87,17 +92,18 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void populateUserInfo() {
         db.collection("users").document(currentUser.getUid()).collection("addresses")
-            .whereEqualTo("isDefault", true).limit(1).get()
-            .addOnSuccessListener(addressSnapshot -> {
-                if (!addressSnapshot.isEmpty()) {
-                    updateAddressViews(addressSnapshot.getDocuments().get(0).getReference());
+            .whereEqualTo("default", true).limit(1).get() // FIX: Changed "isDefault" to "default"
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                    updateAddressViews(task.getResult().getDocuments().get(0));
                 } else {
                     db.collection("users").document(currentUser.getUid()).collection("addresses")
                         .limit(1).get()
-                        .addOnSuccessListener(anyAddressSnapshot -> {
-                            if (!anyAddressSnapshot.isEmpty()) {
-                                updateAddressViews(anyAddressSnapshot.getDocuments().get(0).getReference());
+                        .addOnCompleteListener(anyTask -> {
+                            if (anyTask.isSuccessful() && !anyTask.getResult().isEmpty()) {
+                                updateAddressViews(anyTask.getResult().getDocuments().get(0));
                             } else {
+                                userNameAndPhone.setText("Chưa có tên | SĐT");
                                 userAddress.setText("Chưa có thông tin địa chỉ");
                             }
                         });
@@ -105,18 +111,16 @@ public class CheckoutActivity extends AppCompatActivity {
             });
     }
     
-    private void updateAddressViews(DocumentReference addressRef) {
-        addressRef.get().addOnSuccessListener(addressDocument -> {
-            if (addressDocument.exists()) {
-                String receiverName = addressDocument.getString("receiverName");
-                String street = addressDocument.getString("streetAddress");
-                String city = addressDocument.getString("city");
-                String phone = addressDocument.getString("phoneNumber");
+    private void updateAddressViews(DocumentSnapshot addressDocument) {
+        if (addressDocument.exists()) {
+            String receiverName = addressDocument.getString("receiverName");
+            String street = addressDocument.getString("streetAddress");
+            String city = addressDocument.getString("city");
+            String phone = addressDocument.getString("phoneNumber");
 
-                userNameAndPhone.setText(String.format("%s | %s", receiverName, phone));
-                userAddress.setText(String.format("%s, %s", street, city));
-            }
-        });
+            userNameAndPhone.setText(String.format("%s | %s", receiverName, phone));
+            userAddress.setText(String.format("%s, %s", street, city));
+        }
     }
 
     private void setupRecyclerView() {
